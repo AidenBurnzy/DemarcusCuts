@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Demarcus Cuts</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-content">
+        <a class="logo" href="#top">Demarcus Cuts</a>
+        <nav class="primary-nav">
+          <a href="#about">About</a>
+          <a href="#services">Services</a>
+          <a href="#book">Book</a>
+          <a href="#contact">Contact</a>
+        </nav>
+        <a class="cta" href="#book">Book Now</a>
+      </div>
+    </header>
+
+    <main>
+      <section id="hero" class="hero-section">
+        <div class="container hero-content">
+          <div class="hero-copy">
+            <h1>Precision Cuts. Fresh Confidence.</h1>
+            <p>
+              Demarcus Cuts delivers tailored grooming experiences for clients who
+              demand sharp style and exceptional service.
+            </p>
+            <div class="hero-actions">
+              <a class="cta" href="#book">Schedule an Appointment</a>
+              <a class="secondary" href="#services">Explore Services</a>
+            </div>
+          </div>
+          <div class="hero-highlight">
+            <p class="highlight-label">Popular Slots</p>
+            <ul class="highlight-list" id="popular-slots"></ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="about" class="section about-section">
+        <div class="container">
+          <div class="section-header">
+            <h2>About Demarcus Cuts</h2>
+            <p>
+              A modern grooming studio crafted for entrepreneurs, artists, and
+              professionals who want a signature look every time.
+            </p>
+          </div>
+          <div class="about-grid">
+            <article>
+              <h3>Tailored Experience</h3>
+              <p>
+                Personalized consultations ensure every cut reflects your unique
+                style and upcoming goals.
+              </p>
+            </article>
+            <article>
+              <h3>Premium Products</h3>
+              <p>
+                Only top-tier grooming products are used to keep your cut sharp
+                long after you leave the chair.
+              </p>
+            </article>
+            <article>
+              <h3>On Your Schedule</h3>
+              <p>
+                Flexible bookings and reminders make it easy to lock in your next
+                session without stress.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="services" class="section services-section">
+        <div class="container">
+          <div class="section-header">
+            <h2>Signature Services</h2>
+            <p>Focused offerings that deliver clean lines and refined finishes.</p>
+          </div>
+          <div class="services-grid">
+            <article>
+              <h3>Executive Cut</h3>
+              <p>
+                Precision cut, detailed taper, and style finish for boardroom-ready
+                presence.
+              </p>
+            </article>
+            <article>
+              <h3>Fade Session</h3>
+              <p>
+                Seamless fades blended with razor detailing for a standout
+                silhouette.
+              </p>
+            </article>
+            <article>
+              <h3>Beard Refinement</h3>
+              <p>
+                Beard shaping, conditioning treatment, and lineup for a polished
+                look.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="book" class="section booking-section">
+        <div class="container">
+          <div class="section-header">
+            <h2>Book an Appointment</h2>
+            <p>Select an available date and time to reserve your seat.</p>
+          </div>
+          <div class="booking-grid">
+            <div class="calendar-card">
+              <div class="calendar-header">
+                <button id="prev-month" aria-label="Previous month">&#10094;</button>
+                <div>
+                  <p id="calendar-month" class="calendar-month"></p>
+                  <p id="calendar-year" class="calendar-year"></p>
+                </div>
+                <button id="next-month" aria-label="Next month">&#10095;</button>
+              </div>
+              <div class="calendar-body">
+                <div class="calendar-grid" id="calendar-grid"></div>
+              </div>
+              <footer class="calendar-legend">
+                <span class="legend available">Available</span>
+                <span class="legend booked">Booked</span>
+                <span class="legend selected">Selected</span>
+              </footer>
+            </div>
+            <form class="booking-form" id="booking-form">
+              <div class="form-group">
+                <label for="appointment-date">Selected Date</label>
+                <input
+                  type="text"
+                  id="appointment-date"
+                  name="appointmentDate"
+                  placeholder="Choose a date"
+                  readonly
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="appointment-time">Preferred Time</label>
+                <select id="appointment-time" name="appointmentTime" required>
+                  <option value="" disabled selected>Select a time</option>
+                </select>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="cta">Request Booking</button>
+                <p class="form-hint">
+                  Your appointment request will be confirmed via email.
+                </p>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section contact-section">
+        <div class="container contact-grid">
+          <div class="contact-intro">
+            <h2>Contact Demarcus</h2>
+            <p>Reach out with questions, collaborations, or group bookings.</p>
+            <div class="social-links">
+              <a
+                class="social-link"
+                href="https://www.instagram.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Instagram
+              </a>
+              <a
+                class="social-link"
+                href="https://www.tiktok.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                TikTok
+              </a>
+            </div>
+          </div>
+          <form class="contact-form" id="contact-form">
+            <div class="form-group">
+              <label for="name">Full Name</label>
+              <input type="text" id="name" name="name" placeholder="Your name" required />
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" placeholder="you@example.com" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" name="phone" placeholder="(555) 123-4567" />
+            </div>
+            <div class="form-group">
+              <label for="message">How can we help?</label>
+              <textarea id="message" name="message" rows="4" placeholder="Tell us about your request" required></textarea>
+            </div>
+            <button type="submit" class="cta">Send Message</button>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <p>&copy; <span id="current-year"></span> Demarcus Cuts. All rights reserved.</p>
+        <p class="footer-note">Crafted with precision and purpose.</p>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
