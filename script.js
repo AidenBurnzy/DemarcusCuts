@@ -6,21 +6,17 @@ const nextMonthBtn = document.getElementById("next-month");
 const appointmentDateInput = document.getElementById("appointment-date");
 const appointmentTimeSelect = document.getElementById("appointment-time");
 const bookingForm = document.getElementById("booking-form");
-const popularSlotsList = document.getElementById("popular-slots");
 const currentYearSpan = document.getElementById("current-year");
 
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const availability = generateMockAvailability();
-const popularSlots = derivePopularSlots(availability);
-
 const calendarState = {
   current: startOfMonth(new Date()),
   selectedDate: null,
 };
 
 renderFooterYear();
-renderPopularSlots(popularSlots);
 renderCalendar();
 
 prevMonthBtn.addEventListener("click", () => {
@@ -52,16 +48,6 @@ function renderFooterYear() {
   if (currentYearSpan) {
     currentYearSpan.textContent = new Date().getFullYear();
   }
-}
-
-function renderPopularSlots(slots) {
-  if (!popularSlotsList) return;
-  popularSlotsList.innerHTML = "";
-  slots.forEach(({ date, time }) => {
-    const listItem = document.createElement("li");
-    listItem.innerHTML = `<span>${formatReadableDate(date)}</span><span>${time}</span>`;
-    popularSlotsList.appendChild(listItem);
-  });
 }
 
 function renderCalendar() {
@@ -149,13 +135,6 @@ function generateMockAvailability() {
   return data;
 }
 
-function derivePopularSlots(data) {
-  return Object.entries(data)
-    .slice(0, 5)
-    .map(([date, times]) => ({ date, time: times[0] }))
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
-}
-
 function startOfMonth(date) {
   return new Date(date.getFullYear(), date.getMonth(), 1);
 }
@@ -186,12 +165,4 @@ function formatISODate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
     date.getDate()
   ).padStart(2, "0")}`;
-}
-
-function formatReadableDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
 }
