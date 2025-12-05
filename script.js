@@ -10,14 +10,22 @@ const currentYearSpan = document.getElementById("current-year");
 
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-const availability = generateMockAvailability();
+// API Configuration
+const API_CONFIG = {
+  baseURL: "https://auctus-app.vercel.app",
+  clientId: "15",
+};
+
 const calendarState = {
   current: startOfMonth(new Date()),
   selectedDate: null,
+  availability: null,
+  settings: null,
+  isLoading: true,
 };
 
 renderFooterYear();
-renderCalendar();
+initializeCalendar();
 
 prevMonthBtn.addEventListener("click", () => {
   calendarState.current = addMonths(calendarState.current, -1);
@@ -29,20 +37,167 @@ nextMonthBtn.addEventListener("click", () => {
   renderCalendar();
 });
 
+// Initialize calendar with API data
+async function initializeCalendar() {
+  try {
+    calendarState.isLoading = true;
+    await fetchAvailability();
+    renderCalendar();
+  } catch (error) {
+    console.error("Failed to load availability:", error);
+    showError("Unable to load availability. Please try again later.");
+  } finally {
+    calendarState.isLoading = false;
+  }
+}
+
+// Fetch availability from Auctus API
+async function fetchAvailability() {
+  const startDate = formatISODate(calendarState.current);
+  const endDate = formatISODate(addDays(calendarState.current, 90));
+
+  try {
+    const response = await fetch(
+      `${API_CONFIG.baseURL}/api/bookings/availability?clientId=${API_CONFIG.clientId}&startDate=${startDate}&endDate=${endDate}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    calendarState.availability = data;
+    calendarState.settings = data.settings;
+  } catch (error) {
+    console.error("Failed to fetch availability:", error);
+    // Fallback to demo mode
+    calendarState.availability = generateDemoAvailability();
+    calendarState.settings = calendarState.availability.settings;
+  }
+}
+
+// Generate demo availability for testing (when API is unavailable)
+function generateDemoAvailability() {
+  const schedules = [
+    { dayOfWeek: 1, startTime: "09:00", endTime: "18:00", isEnabled: true },
+    { dayOfWeek: 2, startTime: "09:00", endTime: "18:00", isEnabled: true },
+    { dayOfWeek: 3, startTime: "09:00", endTime: "18:00", isEnabled: true },
+    { dayOfWeek: 4, startTime: "09:00", endTime: "18:00", isEnabled: true },
+    { dayOfWeek: 5, startTime: "09:00", endTime: "17:00", isEnabled: true },
+    { dayOfWeek: 6, startTime: "10:00", endTime: "15:00", isEnabled: true },
+  ];
+
+  const bookings = [];
+  const baseDate = startOfMonth(new Date());
+  for (let i = 0; i < 5; i++) {
+    bookings.push({
+      date: formatISODate(addDays(baseDate, Math.random() * 30)),
+      startTime: "14:00",
+      endTime: "15:00",
+    });
+  }
+
+  return {
+    settings: {
+      slotDuration: 60,
+      bufferTime: 15,
+      minAdvanceBooking: 24,
+      maxAdvanceBooking: 2160,
+      requireApproval: false,
+      timezone: "America/New_York",
+    },
+    schedules,
+    overrides: [],
+    bookings,
+  };
+}
+
 bookingForm.addEventListener("submit", (event) => {
   event.preventDefault();
-  const payload = new FormData(bookingForm);
-  const submittedData = Object.fromEntries(payload.entries());
-  /* eslint-disable no-console */
-  console.log("Booking request submitted", submittedData);
-  /* eslint-enable no-console */
-  bookingForm.reset();
-  appointmentTimeSelect.innerHTML = `<option value="" disabled selected>Select a time</option>`;
-  calendarState.selectedDate = null;
-  renderCalendar();
-  appointmentDateInput.placeholder = "Choose a date";
-  alert("Thanks! We received your booking request and will confirm soon.");
+  submitBooking();
 });
+
+async function submitBooking() {
+  if (!calendarState.selectedDate) {
+    showError("Please select a date");
+    return;
+  }
+
+  const formData = new FormData(bookingForm);
+  const selectedTime = formData.get("appointmentTime");
+
+  if (!selectedTime) {
+    showError("Please select a time");
+    return;
+  }
+
+  const [startTime, endTime] = selectedTime.split(" - ");
+
+  try {
+    // Disable button and show loading state
+    const submitBtn = bookingForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Booking...";
+
+    const response = await fetch(`${API_CONFIG.baseURL}/api/bookings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientId: API_CONFIG.clientId,
+        customerName: formData.get("name") || formData.get("customerName"),
+        customerEmail: formData.get("email") || formData.get("customerEmail"),
+        customerPhone: formData.get("phone") || formData.get("customerPhone"),
+        date: calendarState.selectedDate,
+        startTime: startTime.trim(),
+        endTime: endTime.trim(),
+        duration: calendarState.settings?.slotDuration || 60,
+        notes: formData.get("notes") || "",
+      }),
+    });
+
+    if (response.status === 409) {
+      showError("This time slot was just booked. Please select another time.");
+      await fetchAvailability();
+      renderCalendar();
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Request Booking";
+      return;
+    }
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to book appointment");
+    }
+
+    const result = await response.json();
+
+    if (result.booking.requiresApproval || calendarState.settings?.requireApproval) {
+      alert(
+        "Booking request submitted! Demarcus will review and confirm via email within 24 hours."
+      );
+    } else {
+      alert(
+        `Booking confirmed for ${calendarState.selectedDate} at ${startTime}! Check your email for details.`
+      );
+    }
+
+    bookingForm.reset();
+    appointmentTimeSelect.innerHTML = `<option value="" disabled selected>Select a time</option>`;
+    calendarState.selectedDate = null;
+    await fetchAvailability();
+    renderCalendar();
+    appointmentDateInput.placeholder = "Choose a date";
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Request Booking";
+  } catch (error) {
+    console.error("Booking error:", error);
+    showError(error.message || "Failed to submit booking. Please try again.");
+    const submitBtn = bookingForm.querySelector('button[type="submit"]');
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Request Booking";
+  }
+}
 
 function renderFooterYear() {
   if (currentYearSpan) {
@@ -51,6 +206,11 @@ function renderFooterYear() {
 }
 
 function renderCalendar() {
+  if (!calendarState.availability) {
+    calendarGrid.innerHTML = "<p>Loading availability...</p>";
+    return;
+  }
+
   const monthStart = calendarState.current;
   const monthDisplay = monthStart.toLocaleDateString(undefined, {
     month: "long",
@@ -79,7 +239,7 @@ function renderCalendar() {
 
   for (let day = 1; day <= daysInMonth; day += 1) {
     const date = new Date(yearDisplay, monthStart.getMonth(), day);
-    const dateKey = makeDateKey(date);
+    const dateStr = formatISODate(date);
     const cell = document.createElement("button");
     cell.type = "button";
     cell.textContent = day;
@@ -89,9 +249,10 @@ function renderCalendar() {
       cell.classList.add("selected");
     }
 
-    if (availability[dateKey] && availability[dateKey].length > 0) {
+    const availableSlots = getAvailableSlots(dateStr);
+    if (availableSlots && availableSlots.length > 0) {
       cell.classList.add("available");
-      cell.addEventListener("click", () => handleDateSelection(date, dateKey));
+      cell.addEventListener("click", () => handleDateSelection(date, dateStr, availableSlots));
     } else {
       cell.classList.add("booked");
       cell.disabled = true;
@@ -101,38 +262,97 @@ function renderCalendar() {
   }
 }
 
-function handleDateSelection(date, dateKey) {
+function handleDateSelection(date, dateStr, availableSlots) {
   calendarState.selectedDate = date;
   appointmentDateInput.value = formatISODate(date);
   appointmentDateInput.placeholder = "";
-  populateTimeOptions(availability[dateKey]);
+  populateTimeOptions(availableSlots);
   renderCalendar();
 }
 
-function populateTimeOptions(times = []) {
+function populateTimeOptions(slots = []) {
   appointmentTimeSelect.innerHTML = `<option value="" disabled selected>Select a time</option>`;
-  times.forEach((slot) => {
+  slots.forEach((slot) => {
     const option = document.createElement("option");
-    option.value = slot;
-    option.textContent = slot;
+    option.value = `${slot.startTime} - ${slot.endTime}`;
+    option.textContent = `${slot.startTime} - ${slot.endTime}`;
     appointmentTimeSelect.appendChild(option);
   });
 }
 
-function generateMockAvailability() {
-  const data = {};
-  const baseDate = startOfMonth(new Date());
-  for (let i = 0; i < 60; i += 1) {
-    const current = addDays(baseDate, i);
-    const weekday = current.getDay();
-    if ([0].includes(weekday)) continue;
-    const dateKey = makeDateKey(current);
-    const slots = ["9:00 AM", "11:00 AM", "1:00 PM", "3:00 PM", "5:00 PM"];
-    if (weekday === 6) slots.splice(4, 1);
-    if (weekday === 3) slots.splice(2, 1);
-    data[dateKey] = slots.slice();
+// Calculate available time slots for a specific date
+function getAvailableSlots(dateStr) {
+  if (!calendarState.availability) return [];
+
+  const { settings, schedules, overrides, bookings } = calendarState.availability;
+
+  // Check for date-specific override
+  const override = overrides?.find((o) => o.date === dateStr);
+  if (override && !override.isAvailable) return []; // Day is blocked
+
+  // Get day of week (0=Sunday, 6=Saturday)
+  const date = new Date(dateStr);
+  const dayOfWeek = date.getDay();
+
+  // Check if within advance booking window
+  const now = new Date();
+  const hoursUntilDate = (date - now) / (1000 * 60 * 60);
+
+  if (hoursUntilDate < settings.minAdvanceBooking) return []; // Too soon to book
+  if (hoursUntilDate > settings.maxAdvanceBooking) return []; // Too far in advance
+
+  // Get schedule for this day
+  const timeRange = override || schedules.find((s) => s.dayOfWeek === dayOfWeek && s.isEnabled);
+  if (!timeRange) return []; // Not available this day
+
+  const slots = [];
+  const startMinutes = timeToMinutes(timeRange.startTime);
+  const endMinutes = timeToMinutes(timeRange.endTime);
+
+  let current = startMinutes;
+  while (current + settings.slotDuration <= endMinutes) {
+    const slotStart = minutesToTime(current);
+    const slotEnd = minutesToTime(current + settings.slotDuration);
+
+    // Check if slot conflicts with existing bookings
+    const isBooked = bookings?.some(
+      (b) =>
+        b.date === dateStr &&
+        timeOverlaps(slotStart, slotEnd, b.startTime, b.endTime)
+    );
+
+    if (!isBooked) {
+      slots.push({ startTime: slotStart, endTime: slotEnd });
+    }
+
+    current += settings.slotDuration + settings.bufferTime;
   }
-  return data;
+
+  return slots;
+}
+
+// Helper: Convert time string "HH:MM" to minutes
+function timeToMinutes(time) {
+  const [hours, minutes] = time.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+// Helper: Convert minutes back to "HH:MM"
+function minutesToTime(minutes) {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+}
+
+// Helper: Check if two time ranges overlap
+function timeOverlaps(start1, end1, start2, end2) {
+  return start1 < end2 && end1 > start2;
+}
+
+// Show error message to user
+function showError(message) {
+  alert(message);
+  console.error(message);
 }
 
 function startOfMonth(date) {
@@ -147,11 +367,7 @@ function addDays(date, amount) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
 }
 
-function makeDateKey(date) {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate()
-  ).padStart(2, "0")}`;
-}
+
 
 function isSameDate(a, b) {
   return (
