@@ -51,6 +51,21 @@
                 <span class="legend selected">Selected</span>
               </footer>
             </div>
+
+            <!-- Time Slot Selection Modal -->
+            <div id="time-slot-modal" class="modal hidden">
+              <div class="modal-overlay"></div>
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h3 id="modal-date-title">Select a Time</h3>
+                  <button id="modal-close-btn" class="modal-close" aria-label="Close">×</button>
+                </div>
+                <div class="time-slots-grid" id="time-slots-grid">
+                  <!-- Time slots will be generated here -->
+                </div>
+              </div>
+            </div>
+
             <form class="booking-form" id="booking-form">
               <div class="form-group">
                 <label for="customer-name">Full Name</label>

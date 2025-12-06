@@ -468,6 +468,129 @@ img {
   letter-spacing: 0.1em;
 }
 
+/* Time Slot Modal */
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  position: relative;
+  z-index: 1002;
+  background: rgba(12, 12, 12, 0.95);
+  border: 1px solid rgba(245, 245, 245, 0.1);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: min(500px, 90vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.modal-header h3 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: rgba(245, 245, 245, 0.7);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+  background-color: rgba(245, 245, 245, 0.1);
+  color: #f5f5f5;
+  outline: none;
+}
+
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.time-slot {
+  padding: 1rem;
+  border: 1px solid rgba(245, 245, 245, 0.1);
+  border-radius: 10px;
+  background: rgba(5, 5, 5, 0.85);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.time-slot.available {
+  border-color: rgba(76, 175, 80, 0.4);
+  background: rgba(76, 175, 80, 0.05);
+  color: #4caf50;
+  font-weight: 600;
+}
+
+.time-slot.available:hover,
+.time-slot.available:focus {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.8);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.time-slot.booked {
+  border-color: rgba(244, 67, 54, 0.3);
+  background: rgba(244, 67, 54, 0.05);
+  color: rgba(244, 67, 54, 0.7);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.time-slot.booked:hover {
+  background: rgba(244, 67, 54, 0.05);
+  transform: none;
+}
+
+.time-slot.selected {
+  background: #f5f5f5;
+  color: #050505;
+  border-color: #f5f5f5;
+  font-weight: 700;
+}
+
 @media (max-width: 900px) {
   .site-header {
     padding: 1rem 0;
@@ -528,5 +651,14 @@ img {
 
   .hero-visual {
     min-height: 220px;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+  }
+
+  .time-slots-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.5rem;
   }
 }

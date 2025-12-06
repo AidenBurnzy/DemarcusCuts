@@ -8,6 +8,12 @@ const appointmentTimeSelect = document.getElementById("appointment-time");
 const bookingForm = document.getElementById("booking-form");
 const currentYearSpan = document.getElementById("current-year");
 
+// Modal elements
+const timeSlotModal = document.getElementById("time-slot-modal");
+const modalDateTitle = document.getElementById("modal-date-title");
+const timeSlotsGrid = document.getElementById("time-slots-grid");
+const modalCloseBtn = document.getElementById("modal-close-btn");
+
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // API Configuration
@@ -35,6 +41,19 @@ prevMonthBtn.addEventListener("click", () => {
 nextMonthBtn.addEventListener("click", () => {
   calendarState.current = addMonths(calendarState.current, 1);
   renderCalendar();
+});
+
+// Modal event listeners
+modalCloseBtn.addEventListener("click", () => closeTimeSlotModal());
+timeSlotModal.addEventListener("click", (e) => {
+  if (e.target === timeSlotModal) closeTimeSlotModal();
+});
+
+// Close modal on Escape key
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !timeSlotModal.classList.contains("hidden")) {
+    closeTimeSlotModal();
+  }
 });
 
 // Initialize calendar with API data
@@ -264,20 +283,88 @@ function renderCalendar() {
 
 function handleDateSelection(date, dateStr, availableSlots) {
   calendarState.selectedDate = date;
-  appointmentDateInput.value = formatISODate(date);
-  appointmentDateInput.placeholder = "";
-  populateTimeOptions(availableSlots);
+  openTimeSlotModal(dateStr, availableSlots);
+}
+
+function openTimeSlotModal(dateStr, availableSlots) {
+  const date = new Date(dateStr);
+  const formattedDate = date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  modalDateTitle.textContent = formattedDate;
+
+  // Generate all possible time slots
+  const allSlots = generateAllTimeSlots(dateStr);
+
+  timeSlotsGrid.innerHTML = "";
+
+  allSlots.forEach((slot) => {
+    const isAvailable = availableSlots.some(
+      (s) => s.startTime === slot.startTime && s.endTime === slot.endTime
+    );
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `time-slot ${isAvailable ? "available" : "booked"}`;
+    button.textContent = `${slot.startTime}\n${slot.endTime}`;
+    button.disabled = !isAvailable;
+
+    if (isAvailable) {
+      button.addEventListener("click", () => {
+        selectTimeSlot(dateStr, slot);
+      });
+    }
+
+    timeSlotsGrid.appendChild(button);
+  });
+
+  timeSlotModal.classList.remove("hidden");
+}
+
+function generateAllTimeSlots(dateStr) {
+  if (!calendarState.availability) return [];
+
+  const { settings, schedules, overrides } = calendarState.availability;
+
+  const date = new Date(dateStr);
+  const dayOfWeek = date.getDay();
+
+  // Check for override
+  const override = overrides?.find((o) => o.date === dateStr);
+  if (override && !override.isAvailable) return [];
+
+  // Get schedule for this day
+  const timeRange = override || schedules.find((s) => s.dayOfWeek === dayOfWeek && s.isEnabled);
+  if (!timeRange) return [];
+
+  const slots = [];
+  const startMinutes = timeToMinutes(timeRange.startTime);
+  const endMinutes = timeToMinutes(timeRange.endTime);
+
+  let current = startMinutes;
+  while (current + settings.slotDuration <= endMinutes) {
+    const slotStart = minutesToTime(current);
+    const slotEnd = minutesToTime(current + settings.slotDuration);
+    slots.push({ startTime: slotStart, endTime: slotEnd });
+    current += settings.slotDuration + settings.bufferTime;
+  }
+
+  return slots;
+}
+
+function selectTimeSlot(dateStr, slot) {
+  appointmentDateInput.value = dateStr;
+  appointmentTimeSelect.value = `${slot.startTime} - ${slot.endTime}`;
+  appointmentTimeSelect.innerHTML = `<option value="" disabled>Select a time</option><option value="${slot.startTime} - ${slot.endTime}" selected>${slot.startTime} - ${slot.endTime}</option>`;
+  closeTimeSlotModal();
   renderCalendar();
 }
 
-function populateTimeOptions(slots = []) {
-  appointmentTimeSelect.innerHTML = `<option value="" disabled selected>Select a time</option>`;
-  slots.forEach((slot) => {
-    const option = document.createElement("option");
-    option.value = `${slot.startTime} - ${slot.endTime}`;
-    option.textContent = `${slot.startTime} - ${slot.endTime}`;
-    appointmentTimeSelect.appendChild(option);
-  });
+function closeTimeSlotModal() {
+  timeSlotModal.classList.add("hidden");
 }
 
 // Calculate available time slots for a specific date
