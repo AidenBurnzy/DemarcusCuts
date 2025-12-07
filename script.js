@@ -24,6 +24,16 @@ function formatTime12Hour(time24) {
   return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
+// Get day of week in Pacific/Auckland timezone
+function getDayOfWeekInTimezone(date) {
+  const dateStr = date.toLocaleDateString('en-US', {
+    timeZone: 'Pacific/Auckland',
+    weekday: 'short'
+  });
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  return days.indexOf(dateStr.slice(0, 3));
+}
+
 // API Configuration
 const API_CONFIG = {
   baseURL: "https://auctus-app.vercel.app",
@@ -338,7 +348,7 @@ function generateAllTimeSlots(dateStr) {
   const { settings, schedules, overrides } = calendarState.availability;
 
   const date = new Date(dateStr);
-  const dayOfWeek = date.getDay();
+  const dayOfWeek = getDayOfWeekInTimezone(date);
 
   // Check for override
   const override = overrides?.find((o) => o.date === dateStr);
@@ -387,7 +397,7 @@ function getAvailableSlots(dateStr) {
 
   // Get day of week (0=Sunday, 6=Saturday)
   const date = new Date(dateStr);
-  const dayOfWeek = date.getDay();
+  const dayOfWeek = getDayOfWeekInTimezone(date);
 
   // Check if within advance booking window
   const now = new Date();
