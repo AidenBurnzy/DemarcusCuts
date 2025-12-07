@@ -197,20 +197,22 @@ async function submitBooking() {
     submitBtn.disabled = true;
     submitBtn.textContent = "Booking...";
 
+    const bookingData = {
+      clientId: API_CONFIG.clientId,
+      customerName: formData.get("customerName"),
+      customerEmail: formData.get("customerEmail"),
+      customerPhone: formData.get("customerPhone") || "",
+      date: calendarState.selectedDate,
+      startTime: startTime.trim(),
+      endTime: endTime.trim(),
+      duration: calendarState.settings?.slotDuration || 60,
+      notes: formData.get("notes") || "",
+    };
+
     const response = await fetch(`${API_CONFIG.baseURL}/api/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        clientId: API_CONFIG.clientId,
-        customerName: formData.get("name") || formData.get("customerName"),
-        customerEmail: formData.get("email") || formData.get("customerEmail"),
-        customerPhone: formData.get("phone") || formData.get("customerPhone"),
-        date: calendarState.selectedDate,
-        startTime: startTime.trim(),
-        endTime: endTime.trim(),
-        duration: calendarState.settings?.slotDuration || 60,
-        notes: formData.get("notes") || "",
-      }),
+      body: JSON.stringify(bookingData),
     });
 
     if (response.status === 409) {
@@ -229,16 +231,13 @@ async function submitBooking() {
 
     const result = await response.json();
 
-    if (result.booking.requiresApproval || calendarState.settings?.requireApproval) {
-      alert(
-        "Booking request submitted! Demarcus will review and confirm via email within 24 hours."
-      );
-    } else {
-      alert(
-        `Booking confirmed for ${calendarState.selectedDate} at ${formatTime12Hour(startTime)}! Check your email for details.`
-      );
-    }
+    // Close time slot modal if open
+    closeTimeSlotModal();
 
+    // Show custom confirmation modal
+    showConfirmationModal(bookingData);
+
+    // Reset form and calendar
     bookingForm.reset();
     appointmentTimeSelect.innerHTML = `<option value="" disabled selected>Select a time</option>`;
     calendarState.selectedDate = null;
@@ -255,6 +254,32 @@ async function submitBooking() {
     submitBtn.disabled = false;
     submitBtn.textContent = "Request Booking";
   }
+}
+
+function showConfirmationModal(bookingData) {
+  // Format the date
+  const date = new Date(bookingData.date + 'T00:00:00');
+  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const formattedDate = date.toLocaleDateString('en-US', dateOptions);
+  
+  // Populate modal with booking details
+  document.getElementById('confirm-date').textContent = formattedDate;
+  document.getElementById('confirm-time').textContent = 
+    `${formatTime12Hour(bookingData.startTime)} - ${formatTime12Hour(bookingData.endTime)}`;
+  document.getElementById('confirm-name').textContent = bookingData.customerName;
+  document.getElementById('confirm-email').textContent = bookingData.customerEmail;
+  document.getElementById('confirm-phone').textContent = bookingData.customerPhone || '—';
+  
+  // Show the confirmation modal
+  const modal = document.getElementById('confirmation-modal');
+  modal.classList.remove('hidden');
+  modal.style.display = 'flex';
+}
+
+function closeConfirmationModal() {
+  const modal = document.getElementById('confirmation-modal');
+  modal.classList.add('hidden');
+  modal.style.display = 'none';
 }
 
 function renderFooterYear() {
