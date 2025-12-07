@@ -336,7 +336,7 @@ function renderCalendar() {
     cell.textContent = day;
     cell.className = "calendar-cell";
 
-    if (calendarState.selectedDate && isSameDate(date, calendarState.selectedDate)) {
+    if (calendarState.selectedDate && calendarState.selectedDate === dateStr) {
       cell.classList.add("selected");
     }
 
@@ -363,7 +363,7 @@ function renderCalendar() {
 }
 
 function handleDateSelection(date, dateStr, availableSlots) {
-  calendarState.selectedDate = date;
+  calendarState.selectedDate = dateStr;
   openTimeSlotModal(dateStr, availableSlots);
 }
 
