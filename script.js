@@ -257,10 +257,18 @@ async function submitBooking() {
 }
 
 function showConfirmationModal(bookingData) {
-  // Format the date
-  const date = new Date(bookingData.date + 'T00:00:00');
-  const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  const formattedDate = date.toLocaleDateString('en-US', dateOptions);
+  // Parse the date string correctly (format: YYYY-MM-DD)
+  const [year, month, day] = bookingData.date.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  
+  // Format with Pacific/Auckland timezone
+  const formattedDate = date.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Pacific/Auckland'
+  });
   
   // Populate modal with booking details
   document.getElementById('confirm-date').textContent = formattedDate;
@@ -360,11 +368,17 @@ function handleDateSelection(date, dateStr, availableSlots) {
 }
 
 function openTimeSlotModal(dateStr, availableSlots) {
-  const date = new Date(dateStr);
+  // Parse the date string correctly (format: YYYY-MM-DD)
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day); // Creates date in local timezone
+  
+  // Format with Pacific/Auckland timezone to match server
   const formattedDate = date.toLocaleDateString("en-US", {
     weekday: "long",
+    year: "numeric",
     month: "long",
     day: "numeric",
+    timeZone: "Pacific/Auckland"
   });
 
   modalDateTitle.textContent = formattedDate;
