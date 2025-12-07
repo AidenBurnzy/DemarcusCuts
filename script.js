@@ -89,9 +89,11 @@ document.addEventListener("keydown", (e) => {
 // Initialize calendar with API data
 async function initializeCalendar() {
   try {
+    console.log('🚀 Initializing DemarcusCuts booking calendar...');
     calendarState.isLoading = true;
     await fetchAvailability();
     renderCalendar();
+    console.log('✅ Calendar initialized successfully');
   } catch (error) {
     console.error("Failed to load availability:", error);
     showError("Unable to load availability. Please try again later.");
@@ -118,14 +120,24 @@ async function fetchAvailability() {
     calendarState.availability = data;
     calendarState.settings = data.settings;
     
+    console.log('📥 API Response received:', {
+      schedules: data.schedules?.length || 0,
+      overrides: data.overrides?.length || 0,
+      bookings: data.bookings?.length || 0
+    });
+    
     // Extract blocked dates from overrides (where isAvailable = false)
     calendarState.blockedDates = (data.overrides || []).filter(o => !o.isAvailable).map(o => o.date);
     
     // Store all appointments/bookings
     calendarState.appointments = data.bookings || [];
     
-    console.log('Blocked dates:', calendarState.blockedDates);
-    console.log('Appointments:', calendarState.appointments.length);
+    console.log('🚫 Blocked dates loaded:', calendarState.blockedDates);
+    console.log('📅 Appointments loaded:', calendarState.appointments.length);
+    
+    if (data.overrides && data.overrides.length > 0) {
+      console.log('📋 All overrides:', data.overrides);
+    }
   } catch (error) {
     console.error("Failed to fetch availability:", error);
     // Fallback to demo mode
@@ -347,6 +359,7 @@ function renderCalendar() {
       cell.classList.add("blocked-date");
       cell.disabled = true;
       cell.title = "This date is unavailable";
+      console.log('🚫 Rendering blocked date:', dateStr);
     } else {
       const availableSlots = getAvailableSlots(dateStr);
       if (availableSlots && availableSlots.length > 0) {
@@ -360,6 +373,8 @@ function renderCalendar() {
 
     calendarGrid.appendChild(cell);
   }
+  
+  console.log(`📅 Calendar rendered: ${monthDisplay} ${yearDisplay}, Blocked dates in view: ${calendarState.blockedDates.length}`);
 }
 
 function handleDateSelection(date, dateStr, availableSlots) {
@@ -368,6 +383,14 @@ function handleDateSelection(date, dateStr, availableSlots) {
 }
 
 function openTimeSlotModal(dateStr, availableSlots) {
+  // Safety check: prevent opening modal for blocked dates
+  const isBlocked = calendarState.blockedDates.includes(dateStr);
+  if (isBlocked) {
+    console.warn('⚠️ Attempted to open blocked date:', dateStr);
+    showError('This date is not available for booking.');
+    return;
+  }
+  
   // Parse the date string correctly (format: YYYY-MM-DD)
   const [year, month, day] = dateStr.split('-').map(Number);
   const date = new Date(year, month - 1, day); // Creates date in local timezone
