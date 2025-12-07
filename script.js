@@ -55,6 +55,8 @@ const calendarState = {
   selectedDate: null,
   availability: null,
   settings: null,
+  blockedDates: [],
+  appointments: [],
   isLoading: true,
 };
 
@@ -115,6 +117,15 @@ async function fetchAvailability() {
     const data = await response.json();
     calendarState.availability = data;
     calendarState.settings = data.settings;
+    
+    // Extract blocked dates from overrides (where isAvailable = false)
+    calendarState.blockedDates = (data.overrides || []).filter(o => !o.isAvailable).map(o => o.date);
+    
+    // Store all appointments/bookings
+    calendarState.appointments = data.bookings || [];
+    
+    console.log('Blocked dates:', calendarState.blockedDates);
+    console.log('Appointments:', calendarState.appointments.length);
   } catch (error) {
     console.error("Failed to fetch availability:", error);
     // Fallback to demo mode
@@ -296,13 +307,22 @@ function renderCalendar() {
       cell.classList.add("selected");
     }
 
-    const availableSlots = getAvailableSlots(dateStr);
-    if (availableSlots && availableSlots.length > 0) {
-      cell.classList.add("available");
-      cell.addEventListener("click", () => handleDateSelection(date, dateStr, availableSlots));
-    } else {
-      cell.classList.add("booked");
+    // Check if date is blocked
+    const isBlocked = calendarState.blockedDates.includes(dateStr);
+    
+    if (isBlocked) {
+      cell.classList.add("blocked-date");
       cell.disabled = true;
+      cell.title = "This date is unavailable";
+    } else {
+      const availableSlots = getAvailableSlots(dateStr);
+      if (availableSlots && availableSlots.length > 0) {
+        cell.classList.add("available");
+        cell.addEventListener("click", () => handleDateSelection(date, dateStr, availableSlots));
+      } else {
+        cell.classList.add("booked");
+        cell.disabled = true;
+      }
     }
 
     calendarGrid.appendChild(cell);
@@ -455,6 +475,11 @@ function getAvailableSlots(dateStr) {
 
   const { settings, schedules, overrides, bookings } = calendarState.availability;
 
+  // Check if date is explicitly blocked
+  if (calendarState.blockedDates.includes(dateStr)) {
+    return []; // Day is blocked
+  }
+
   // Check for date-specific override
   const override = overrides?.find((o) => o.date === dateStr);
   if (override && !override.isAvailable) return []; // Day is blocked
@@ -478,19 +503,26 @@ function getAvailableSlots(dateStr) {
   const startMinutes = timeToMinutes(timeRange.startTime);
   const endMinutes = timeToMinutes(timeRange.endTime);
 
+  // Get bookings for this specific date
+  const dayBookings = (bookings || []).filter(b => b.date === dateStr);
+  const dayAppointments = calendarState.appointments.filter(apt => apt.date === dateStr || apt.appointment_date === dateStr);
+  
   let current = startMinutes;
   while (current + settings.slotDuration <= endMinutes) {
     const slotStart = minutesToTime(current);
     const slotEnd = minutesToTime(current + settings.slotDuration);
 
-    // Check if slot conflicts with existing bookings
-    const isBooked = bookings?.some(
-      (b) =>
-        b.date === dateStr &&
-        timeOverlaps(slotStart, slotEnd, b.startTime, b.endTime)
+    // Check if slot conflicts with existing bookings from API
+    const isBookedInAPI = dayBookings.some(
+      (b) => timeOverlaps(slotStart, slotEnd, b.startTime, b.endTime)
+    );
+    
+    // Check if slot conflicts with appointments
+    const isBookedAppointment = dayAppointments.some(
+      (apt) => timeOverlaps(slotStart, slotEnd, apt.startTime || apt.start_time, apt.endTime || apt.end_time)
     );
 
-    if (!isBooked) {
+    if (!isBookedInAPI && !isBookedAppointment) {
       slots.push({ startTime: slotStart, endTime: slotEnd });
     }
 
