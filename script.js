@@ -16,6 +16,14 @@ const modalCloseBtn = document.getElementById("modal-close-btn");
 
 const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// Convert 24-hour time to 12-hour AM/PM format
+function formatTime12Hour(time24) {
+  const [hours, minutes] = time24.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12;
+  return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
+
 // API Configuration
 const API_CONFIG = {
   baseURL: "https://auctus-app.vercel.app",
@@ -196,7 +204,7 @@ async function submitBooking() {
       );
     } else {
       alert(
-        `Booking confirmed for ${calendarState.selectedDate} at ${startTime}! Check your email for details.`
+        `Booking confirmed for ${calendarState.selectedDate} at ${formatTime12Hour(startTime)}! Check your email for details.`
       );
     }
 
@@ -309,7 +317,7 @@ function openTimeSlotModal(dateStr, availableSlots) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = `time-slot ${isAvailable ? "available" : "booked"}`;
-    button.textContent = `${slot.startTime}\n${slot.endTime}`;
+    button.textContent = `${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}`;
     button.disabled = !isAvailable;
 
     if (isAvailable) {
@@ -358,7 +366,7 @@ function generateAllTimeSlots(dateStr) {
 function selectTimeSlot(dateStr, slot) {
   appointmentDateInput.value = dateStr;
   appointmentTimeSelect.value = `${slot.startTime} - ${slot.endTime}`;
-  appointmentTimeSelect.innerHTML = `<option value="" disabled>Select a time</option><option value="${slot.startTime} - ${slot.endTime}" selected>${slot.startTime} - ${slot.endTime}</option>`;
+  appointmentTimeSelect.innerHTML = `<option value="" disabled>Select a time</option><option value="${slot.startTime} - ${slot.endTime}" selected>${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}</option>`;
   closeTimeSlotModal();
   renderCalendar();
 }
