@@ -24,14 +24,24 @@ function formatTime12Hour(time24) {
   return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
-// Get day of week in Pacific/Auckland timezone
+// Get day of week in Pacific/Auckland timezone (0=Sunday, 6=Saturday)
 function getDayOfWeekInTimezone(date) {
-  const dateStr = date.toLocaleDateString('en-US', {
+  // Create a date string in Pacific/Auckland timezone
+  const aucklandDateStr = date.toLocaleDateString('en-NZ', {
     timeZone: 'Pacific/Auckland',
-    weekday: 'short'
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
   });
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return days.indexOf(dateStr.slice(0, 3));
+  
+  // Parse the NZ date string (format: DD/MM/YYYY)
+  const [day, month, year] = aucklandDateStr.split('/').map(Number);
+  
+  // Create a new date object with the Auckland date
+  const aucklandDate = new Date(year, month - 1, day);
+  
+  // Return the day of week (0=Sunday through 6=Saturday)
+  return aucklandDate.getDay();
 }
 
 // API Configuration
