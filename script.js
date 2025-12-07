@@ -193,6 +193,21 @@ async function submitBooking() {
     return;
   }
 
+  // Validate that the selected date is not blocked
+  if (calendarState.blockedDates.includes(calendarState.selectedDate)) {
+    showError("This date is no longer available for booking.");
+    console.warn('❌ Attempted to book blocked date:', calendarState.selectedDate);
+    return;
+  }
+
+  // Double-check that the date still has available slots
+  const availableSlots = getAvailableSlots(calendarState.selectedDate);
+  if (!availableSlots || availableSlots.length === 0) {
+    showError("This date no longer has available time slots.");
+    console.warn('❌ Attempted to book date with no available slots:', calendarState.selectedDate);
+    return;
+  }
+
   const formData = new FormData(bookingForm);
   const selectedTime = formData.get("appointmentTime");
 
