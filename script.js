@@ -127,7 +127,14 @@ async function fetchAvailability() {
     });
     
     // Extract blocked dates from overrides (where isAvailable = false)
-    calendarState.blockedDates = (data.overrides || []).filter(o => !o.isAvailable).map(o => o.date);
+    // Convert ISO timestamps to YYYY-MM-DD format
+    calendarState.blockedDates = (data.overrides || [])
+      .filter(o => !o.isAvailable)
+      .map(o => {
+        // Handle both ISO timestamp and simple date string formats
+        const dateStr = o.date.split('T')[0]; // Extract YYYY-MM-DD from ISO timestamp
+        return dateStr;
+      });
     
     // Store all appointments/bookings
     calendarState.appointments = data.bookings || [];
@@ -511,8 +518,11 @@ function generateAllTimeSlots(dateStr) {
   const date = new Date(dateStr);
   const dayOfWeek = getDayOfWeekInTimezone(date);
 
-  // Check for override
-  const override = overrides?.find((o) => o.date === dateStr);
+  // Check for override (handle ISO timestamp format)
+  const override = overrides?.find((o) => {
+    const overrideDate = o.date.split('T')[0]; // Extract YYYY-MM-DD from ISO timestamp
+    return overrideDate === dateStr;
+  });
   if (override && !override.isAvailable) return [];
 
   // Get schedule for this day
@@ -557,8 +567,11 @@ function getAvailableSlots(dateStr) {
     return []; // Day is blocked
   }
 
-  // Check for date-specific override
-  const override = overrides?.find((o) => o.date === dateStr);
+  // Check for date-specific override (handle ISO timestamp format)
+  const override = overrides?.find((o) => {
+    const overrideDate = o.date.split('T')[0]; // Extract YYYY-MM-DD from ISO timestamp
+    return overrideDate === dateStr;
+  });
   if (override && !override.isAvailable) return []; // Day is blocked
 
   // Get day of week (0=Sunday, 6=Saturday)
