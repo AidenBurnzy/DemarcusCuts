@@ -327,83 +327,29 @@ function openTimeSlotModal(dateStr, availableSlots) {
   // Generate all possible time slots
   const allSlots = generateAllTimeSlots(dateStr);
 
-  // Group slots by time of day
-  const morningSlots = [];
-  const afternoonSlots = [];
-  const eveningSlots = [];
+  timeSlotsGrid.innerHTML = "";
 
   allSlots.forEach((slot) => {
-    const hour = parseInt(slot.startTime.split(':')[0]);
     const isAvailable = availableSlots.some(
       (s) => s.startTime === slot.startTime && s.endTime === slot.endTime
     );
-    
-    const slotData = { ...slot, isAvailable };
-    
-    if (hour < 12) {
-      morningSlots.push(slotData);
-    } else if (hour < 17) {
-      afternoonSlots.push(slotData);
-    } else {
-      eveningSlots.push(slotData);
-    }
-  });
 
-  // Build the modal content with period sections
-  timeSlotsGrid.innerHTML = "";
-
-  if (morningSlots.length > 0) {
-    const section = createPeriodSection("Morning", morningSlots, dateStr);
-    timeSlotsGrid.appendChild(section);
-  }
-
-  if (afternoonSlots.length > 0) {
-    const section = createPeriodSection("Afternoon", afternoonSlots, dateStr);
-    timeSlotsGrid.appendChild(section);
-  }
-
-  if (eveningSlots.length > 0) {
-    const section = createPeriodSection("Evening", eveningSlots, dateStr);
-    timeSlotsGrid.appendChild(section);
-  }
-
-  if (allSlots.length === 0) {
-    timeSlotsGrid.innerHTML = '<p class="no-slots-message">No available time slots for this day.</p>';
-  }
-
-  timeSlotModal.classList.remove("hidden");
-}
-
-function createPeriodSection(periodName, slots, dateStr) {
-  const section = document.createElement("div");
-  section.className = "time-period-section";
-
-  const label = document.createElement("div");
-  label.className = "time-period-label";
-  label.textContent = periodName;
-  section.appendChild(label);
-
-  const grid = document.createElement("div");
-  grid.className = "period-slots-grid";
-
-  slots.forEach((slot) => {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = `time-slot-btn ${slot.isAvailable ? "available" : "booked"}`;
-    button.textContent = formatTime12Hour(slot.startTime);
-    button.disabled = !slot.isAvailable;
+    button.className = `time-slot ${isAvailable ? "available" : "booked"}`;
+    button.textContent = `${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}`;
+    button.disabled = !isAvailable;
 
-    if (slot.isAvailable) {
+    if (isAvailable) {
       button.addEventListener("click", () => {
         selectTimeSlot(dateStr, slot);
       });
     }
 
-    grid.appendChild(button);
+    timeSlotsGrid.appendChild(button);
   });
 
-  section.appendChild(grid);
-  return section;
+  timeSlotModal.classList.remove("hidden");
 }
 
 function generateAllTimeSlots(dateStr) {
