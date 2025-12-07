@@ -332,10 +332,11 @@ img {
 }
 
 .calendar-cell.selected {
-  background-color: #f5f5f5;
-  color: #050505;
-  border-color: #f5f5f5;
+  background-color: #2196F3;
+  color: #ffffff;
+  border-color: #2196F3;
   font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
 }
 
 .calendar-legend {
@@ -394,8 +395,8 @@ img {
 }
 
 .calendar-legend .selected::before {
-  background-color: #f5f5f5;
-  border-color: #f5f5f5;
+  background-color: #2196F3;
+  border-color: #2196F3;
 }
 
 .booking-form {
