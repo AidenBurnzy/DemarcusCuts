@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auctus API Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #00ff88;
+        }
+        button {
+            padding: 10px 20px;
+            background: #00ff88;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #00cc6a;
+        }
+        pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            border-left: 3px solid #00ff88;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 5px;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .success {
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Auctus API Tester</h1>
+    <p>Test what data the Auctus API actually returns for DemarcusCuts (Client ID: 15)</p>
+
+    <div class="section">
+        <h2>Test 1: Main Availability Endpoint</h2>
+        <button onclick="testMainEndpoint()">Test /api/bookings/availability</button>
+        <pre id="main-result">Click button to test...</pre>
+    </div>
+
+    <div class="section">
+        <h2>Test 2: Blocked Dates Endpoint (if it exists)</h2>
+        <button onclick="testBlockedEndpoint()">Test /api/client/availability/blocked</button>
+        <pre id="blocked-result">Click button to test...</pre>
+    </div>
+
+    <div class="section">
+        <h2>Test 3: Alternative Blocked Dates Endpoint</h2>
+        <button onclick="testAlternativeEndpoint()">Test /api/availability/blocked</button>
+        <pre id="alternative-result">Click button to test...</pre>
+    </div>
+
+    <script>
+        const API_BASE = 'https://auctus-app.vercel.app';
+        const CLIENT_ID = '15';
+
+        async function testMainEndpoint() {
+            const result = document.getElementById('main-result');
+            result.innerHTML = '⏳ Testing...';
+            
+            try {
+                const today = new Date();
+                const threeMonths = new Date(today.getTime() + (90 * 24 * 60 * 60 * 1000));
+                const startDate = today.toISOString().split('T')[0];
+                const endDate = threeMonths.toISOString().split('T')[0];
+                
+                const url = `${API_BASE}/api/bookings/availability?clientId=${CLIENT_ID}&startDate=${startDate}&endDate=${endDate}`;
+                console.log('Testing URL:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('Main endpoint response:', data);
+                
+                result.innerHTML = `<div class="success">✅ Status: ${response.status}</div>\n\n`;
+                result.innerHTML += `<strong>Response Data:</strong>\n${JSON.stringify(data, null, 2)}\n\n`;
+                
+                // Analyze the data
+                result.innerHTML += `<strong>Analysis:</strong>\n`;
+                result.innerHTML += `- Schedules: ${data.schedules?.length || 0}\n`;
+                result.innerHTML += `- Overrides: ${data.overrides?.length || 0}\n`;
+                result.innerHTML += `- Bookings: ${data.bookings?.length || 0}\n\n`;
+                
+                if (data.overrides && data.overrides.length > 0) {
+                    const blocked = data.overrides.filter(o => !o.isAvailable);
+                    result.innerHTML += `- Blocked dates (isAvailable=false): ${blocked.length}\n`;
+                    if (blocked.length > 0) {
+                        result.innerHTML += `\n<strong>Blocked Dates Found:</strong>\n${JSON.stringify(blocked, null, 2)}`;
+                    }
+                } else {
+                    result.innerHTML += '<div class="error">⚠️ No overrides found in response</div>';
+                }
+                
+            } catch (error) {
+                console.error('Main endpoint error:', error);
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function testBlockedEndpoint() {
+            const result = document.getElementById('blocked-result');
+            result.innerHTML = '⏳ Testing...';
+            
+            try {
+                const url = `${API_BASE}/api/client/availability/blocked?clientId=${CLIENT_ID}`;
+                console.log('Testing URL:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Blocked endpoint response:', data);
+                
+                result.innerHTML = `<div class="success">✅ Status: ${response.status}</div>\n\n`;
+                result.innerHTML += `<strong>Response:</strong>\n${JSON.stringify(data, null, 2)}`;
+                
+            } catch (error) {
+                console.error('Blocked endpoint error:', error);
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}\n\nThis endpoint probably doesn't exist yet.</div>`;
+            }
+        }
+
+        async function testAlternativeEndpoint() {
+            const result = document.getElementById('alternative-result');
+            result.innerHTML = '⏳ Testing...';
+            
+            try {
+                const url = `${API_BASE}/api/availability/blocked?clientId=${CLIENT_ID}`;
+                console.log('Testing URL:', url);
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Alternative endpoint response:', data);
+                
+                result.innerHTML = `<div class="success">✅ Status: ${response.status}</div>\n\n`;
+                result.innerHTML += `<strong>Response:</strong>\n${JSON.stringify(data, null, 2)}`;
+                
+            } catch (error) {
+                console.error('Alternative endpoint error:', error);
+                result.innerHTML = `<div class="error">❌ Error: ${error.message}\n\nThis endpoint probably doesn't exist yet.</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
