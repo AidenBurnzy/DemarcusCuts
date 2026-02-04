@@ -140,6 +140,7 @@ async function fetchAvailability() {
       overrides: data.overrides?.length || 0,
       bookings: data.bookings?.length || 0
     });
+    console.log('✅ Schedules loaded:', calendarState.availability.schedules);
     
     // Extract blocked dates from overrides (where isAvailable = false)
     // Convert ISO timestamps to YYYY-MM-DD format
@@ -636,9 +637,15 @@ function getAvailableSlots(dateStr) {
   const startMinutes = timeToMinutes(timeRange.startTime);
   const endMinutes = timeToMinutes(timeRange.endTime);
 
-  // Get bookings for this specific date
-  const dayBookings = (bookings || []).filter(b => b.date === dateStr);
-  const dayAppointments = calendarState.appointments.filter(apt => apt.date === dateStr || apt.appointment_date === dateStr);
+  // Get bookings for this specific date (handle ISO timestamp format)
+  const dayBookings = (bookings || []).filter(b => {
+    const bookingDate = b.date.split('T')[0]; // Extract YYYY-MM-DD from ISO timestamp
+    return bookingDate === dateStr;
+  });
+  const dayAppointments = calendarState.appointments.filter(apt => {
+    const aptDate = (apt.date || apt.appointment_date || '').split('T')[0];
+    return aptDate === dateStr;
+  });
   
   let current = startMinutes;
   while (current + settings.slotDuration <= endMinutes) {
@@ -680,7 +687,12 @@ function minutesToTime(minutes) {
 
 // Helper: Check if two time ranges overlap
 function timeOverlaps(start1, end1, start2, end2) {
-  return start1 < end2 && end1 > start2;
+  // Convert all times to minutes for accurate comparison
+  const start1Min = timeToMinutes(start1);
+  const end1Min = timeToMinutes(end1);
+  const start2Min = timeToMinutes(start2);
+  const end2Min = timeToMinutes(end2);
+  return start1Min < end2Min && end1Min > start2Min;
 }
 
 // Show error message to user

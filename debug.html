@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Availability</title>
+</head>
+<body>
+    <h1>Debugging Availability Loading</h1>
+    <pre id="output"></pre>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(msg) {
+            output.textContent += msg + '\n';
+            console.log(msg);
+        }
+        
+        async function test() {
+            try {
+                const baseURL = window.location.hostname === 'localhost' 
+                    ? "http://localhost:3001"
+                    : `${window.location.protocol}//${window.location.hostname.replace('-8000', '-3001')}`;
+                    
+                const url = `${baseURL}/api/bookings/availability?clientId=15&startDate=2026-02-01&endDate=2026-03-01`;
+                log('Fetching: ' + url);
+                
+                const response = await fetch(url);
+                log('Response status: ' + response.status);
+                
+                const data = await response.json();
+                log('\n=== RAW API RESPONSE ===');
+                log(JSON.stringify(data, null, 2));
+                
+                log('\n=== SCHEDULES DETAIL ===');
+                data.schedules.forEach(s => {
+                    log(`Day ${s.dayOfWeek}: ${s.startTime} - ${s.endTime} (enabled: ${s.isEnabled})`);
+                });
+                
+                log('\n=== TEST DAY OF WEEK CALCULATION ===');
+                const testDate = '2026-02-05'; // Wednesday
+                const date = new Date(testDate);
+                const jsDay = date.getDay();
+                log(`Date: ${testDate}, JS getDay(): ${jsDay} (0=Sun, 1=Mon, ..., 6=Sat)`);
+                
+                const matchingSchedule = data.schedules.find(s => s.dayOfWeek === jsDay && s.isEnabled);
+                log(`Matching schedule: ${JSON.stringify(matchingSchedule)}`);
+                
+            } catch (err) {
+                log('ERROR: ' + err.message);
+                log(err.stack);
+            }
+        }
+        
+        test();
+    </script>
+</body>
+</html>
