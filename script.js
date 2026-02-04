@@ -120,8 +120,20 @@ async function fetchAvailability() {
     }
 
     const data = await response.json();
-    calendarState.availability = data;
-    calendarState.settings = data.settings;
+    const normalizedSettings = {
+      slotDuration: data.settings?.slotDuration ?? data.settings?.slot_duration,
+      bufferTime: data.settings?.bufferTime ?? data.settings?.buffer_time,
+      minAdvanceBooking: data.settings?.minAdvanceBooking ?? data.settings?.min_advance_booking,
+      maxAdvanceBooking: data.settings?.maxAdvanceBooking ?? data.settings?.max_advance_booking,
+      requireApproval: data.settings?.requireApproval ?? data.settings?.require_approval,
+      timezone: data.settings?.timezone
+    };
+
+    calendarState.availability = {
+      ...data,
+      settings: normalizedSettings
+    };
+    calendarState.settings = normalizedSettings;
     
     console.log('📥 API Response received:', {
       schedules: data.schedules?.length || 0,
