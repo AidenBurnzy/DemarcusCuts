@@ -1,12 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 const { pool, initializeDatabase, mockDatabase, isConnected } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware - Allow CORS from any GitHub Codespace URL
+// Middleware - CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -18,12 +19,34 @@ app.use(cors({
     // Allow GitHub Codespaces URLs
     if (origin.includes('.app.github.dev')) return callback(null, true);
     
+    // Allow common deployment platforms (add your production domains here)
+    const allowedDomains = [
+      '.netlify.app',
+      '.vercel.app',
+      '.onrender.com',
+      '.railway.app',
+      '.fly.dev',
+      // Add your custom domains here:
+      // 'demarcuscuts.com',
+      // 'www.demarcuscuts.com'
+    ];
+    
+    if (allowedDomains.some(domain => origin.includes(domain))) {
+      return callback(null, true);
+    }
+    
     // Reject other origins
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true
 }));
 app.use(express.json());
+
+// Serve static files in production (optional - for unified deployment)
+if (process.env.NODE_ENV === 'production' && process.env.SERVE_STATIC === 'true') {
+  app.use(express.static(path.join(__dirname, '..')));
+  console.log('📂 Serving static files from:', path.join(__dirname, '..'));
+}
 
 // Initialize database on startup
 initializeDatabase();
@@ -262,6 +285,13 @@ app.get('/api/admin/bookings', async (req, res) => {
   }
 });
 
+// Serve frontend index.html for all non-API routes (optional - for unified deployment)
+if (process.env.NODE_ENV === 'production' && process.env.SERVE_STATIC === 'true') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
+  });
+}
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
@@ -271,4 +301,7 @@ app.use((err, req, res, next) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 DemarcusCuts backend running on port ${PORT}`);
   console.log(`📊 Using Neon Postgres database`);
+  if (process.env.SERVE_STATIC === 'true') {
+    console.log(`📂 Serving frontend static files`);
+  }
 });

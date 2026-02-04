@@ -2,32 +2,58 @@
 
 Modern barbershop booking system featuring an interactive calendar, real-time availability, and a full-stack backend powered by Neon Postgres.
 
-## Getting Started
+## 🚀 Quick Start
 
-### Frontend Only
-Open `index.html` in your browser for the static site.
-
-### Full Stack (With Backend)
-1. Configure backend environment variables:
+### One-Command Startup (Recommended)
 ```bash
-cd backend
-cp .env.example .env
+./start-dev.sh
 ```
 
-Update `DATABASE_URL` in `.env` with your Neon connection string.
+This starts both frontend (port 8000) and backend (port 3001).
 
-2. Start the backend server (requires Node.js):
+### Manual Setup
+
+#### 1. Backend Setup
 ```bash
 cd backend
 npm install
 npm start
 ```
 
-The backend will run on `http://localhost:3001` and connect to your Neon Postgres database.
+Backend runs on `http://localhost:3001` and connects to Neon Postgres.
 
-3. Open `index.html` in your browser. The booking system will use your backend API instead of the external Auctus service.
+#### 2. Frontend Setup
+```bash
+# From project root
+python3 -m http.server 8000
+```
 
-## Architecture
+Frontend available at `http://localhost:8000`
+
+## 📦 What's Included
+
+- ✅ **Database**: Connected to Neon Postgres (Pacific/Auckland timezone)
+- ✅ **Schedules**: Monday-Saturday configured (9am-6pm/5pm)
+- ✅ **Booking System**: Real-time availability and conflict prevention
+- ✅ **Error Handling**: Graceful fallback to demo mode if backend unavailable
+
+## 🌍 Deployment
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment instructions for:
+- Separate frontend/backend (Netlify + Render)
+- Unified deployment (single server)
+- Environment configuration
+
+### Quick Deployment Checklist
+1. Deploy backend to Render/Railway/Fly.io
+2. Note backend URL (e.g., `https://your-app.onrender.com`)
+3. Update `index.html` line 6:
+   ```html
+   <meta name="api-base-url" content="https://your-app.onrender.com" />
+   ```
+4. Deploy frontend to Netlify/Vercel
+
+## 🏗️ Architecture
 
 - **Frontend**: HTML5, CSS3, JavaScript (vanilla)
 - **Backend**: Node.js + Express.js

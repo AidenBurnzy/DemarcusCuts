@@ -47,11 +47,41 @@ function getDayOfWeekInTimezone(date) {
 
 // API Configuration
 const API_CONFIG = {
-  baseURL: window.location.hostname === 'localhost' 
-    ? "http://localhost:3001"
-    : `${window.location.protocol}//${window.location.hostname.replace('-8000', '-3001')}`,
+  baseURL: (() => {
+    // Check for meta tag configuration (for deployment)
+    const metaTag = document.querySelector('meta[name="api-base-url"]');
+    const metaUrl = metaTag?.getAttribute('content');
+    if (metaUrl && metaUrl.trim() !== '') {
+      return metaUrl;
+    }
+    
+    // For localhost development
+    if (window.location.hostname === 'localhost') {
+      return "http://localhost:3001";
+    }
+    
+    // For GitHub Codespaces (*.app.github.dev)
+    if (window.location.hostname.includes('app.github.dev')) {
+      // Replace port in the hostname for GitHub Codespaces forwarded ports
+      return `${window.location.protocol}//${window.location.hostname.replace('-8000', '-3001')}`;
+    }
+    
+    // For production - assume backend is served from same origin
+    // This works if you deploy frontend and backend together (e.g., Express serving static files)
+    return window.location.origin;
+  })(),
   clientId: "15",
 };
+
+// Log and validate API configuration
+console.log('🔧 API Configuration:', API_CONFIG.baseURL);
+if (!API_CONFIG.baseURL || API_CONFIG.baseURL === window.location.origin) {
+  if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('app.github.dev')) {
+    console.warn('⚠️ DEPLOYMENT WARNING: Backend API URL not configured!');
+    console.warn('💡 Add your backend URL to the meta tag in index.html:');
+    console.warn('   <meta name="api-base-url" content="https://your-backend-url.com" />');
+  }
+}
 
 const calendarState = {
   current: startOfMonth(new Date()),
@@ -163,7 +193,12 @@ async function fetchAvailability() {
     }
   } catch (error) {
     console.error("Failed to fetch availability:", error);
+    console.error("API URL attempted:", `${API_CONFIG.baseURL}/api/bookings/availability`);
+    if (error.message.includes('404')) {
+      console.error('❌ Backend not found at this URL. Check your deployment configuration.');
+    }
     // Fallback to demo mode
+    console.log('📋 Falling back to demo mode with sample data');
     calendarState.availability = generateDemoAvailability();
     calendarState.settings = calendarState.availability.settings;
   }
@@ -275,7 +310,10 @@ async function submitBooking() {
     }
 
     if (!response.ok) {
-      const error = await response.json();
+      const error = await response.json().catch(() => ({ message: `Server error: ${response.status}` }));
+      if (response.status === 404) {
+        throw new Error('Backend API not found. Please check your deployment configuration.');
+      }
       throw new Error(error.message || "Failed to book appointment");
     }
 
