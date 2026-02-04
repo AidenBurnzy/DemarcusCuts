@@ -32,6 +32,22 @@
             <h2>Book an Appointment</h2>
             <p>Select an available date and time to reserve your seat.</p>
           </div>
+          <div class="booking-info">
+            <div class="info-card">
+              <h3>Business Hours</h3>
+              <p><strong>Monday - Thursday:</strong> 9:00 AM - 6:00 PM</p>
+              <p><strong>Friday:</strong> 9:00 AM - 5:00 PM</p>
+              <p><strong>Saturday:</strong> 10:00 AM - 3:00 PM</p>
+              <p><strong>Sunday:</strong> Closed</p>
+            </div>
+            <div class="info-card">
+              <h3>Booking Details</h3>
+              <p><strong>Appointment Duration:</strong> 60 minutes</p>
+              <p><strong>Available Window:</strong> 24 hours to 90 days in advance</p>
+              <p><strong>Timezone:</strong> New Zealand Time (Pacific/Auckland)</p>
+            </div>
+          </div>
+
           <div class="booking-grid">
             <div class="calendar-card">
               <div class="calendar-header">
@@ -46,8 +62,10 @@
                 <div class="calendar-grid" id="calendar-grid"></div>
               </div>
               <footer class="calendar-legend">
-                <span class="legend blocked">Blocked</span>
-                <span class="legend selected">Selected</span>
+                <span class="legend available"><span class="legend-dot available"></span>Available</span>
+                <span class="legend booked"><span class="legend-dot booked"></span>Fully Booked</span>
+                <span class="legend blocked"><span class="legend-dot blocked"></span>Blocked</span>
+                <span class="legend selected"><span class="legend-dot selected"></span>Selected</span>
               </footer>
             </div>
 
@@ -56,7 +74,10 @@
               <div class="modal-overlay"></div>
               <div class="modal-content">
                 <div class="modal-header">
-                  <h3 id="modal-date-title">Select a Time</h3>
+                  <div>
+                    <h3 id="modal-date-title">Select a Time</h3>
+                    <p id="modal-slot-count" class="modal-slot-count"></p>
+                  </div>
                   <button id="modal-close-btn" class="modal-close" aria-label="Close">×</button>
                 </div>
                 <div class="time-slots-grid" id="time-slots-grid">
@@ -108,9 +129,14 @@
               </div>
               <div class="form-group">
                 <label for="appointment-time">Preferred Time</label>
-                <select id="appointment-time" name="appointmentTime" required>
-                  <option value="" disabled selected>Select a time</option>
-                </select>
+                <input
+                  type="text"
+                  id="appointment-time"
+                  name="appointmentTime"
+                  placeholder="Select from calendar"
+                  readonly
+                  required
+                />
               </div>
               <div class="form-actions">
                 <button type="submit" class="cta">Request Booking</button>
@@ -278,6 +304,11 @@
         <div class="confirmation-body">
           <p class="confirmation-message">Your appointment has been successfully booked.</p>
           
+          <div class="confirmation-code">
+            <p class="code-label">Booking Code:</p>
+            <p class="code-value" id="confirm-code">-</p>
+          </div>
+          
           <div class="booking-details">
             <div class="detail-row">
               <span class="detail-label">Date:</span>
@@ -302,7 +333,7 @@
           </div>
           
           <p class="confirmation-note">
-            A confirmation email has been sent to your email address.
+            A confirmation email has been sent to your email address. Check your inbox for details.
           </p>
         </div>
         <div class="confirmation-footer">

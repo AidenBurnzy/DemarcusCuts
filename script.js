@@ -11,6 +11,7 @@ const currentYearSpan = document.getElementById("current-year");
 // Modal elements
 const timeSlotModal = document.getElementById("time-slot-modal");
 const modalDateTitle = document.getElementById("modal-date-title");
+const modalSlotCount = document.getElementById("modal-slot-count");
 const timeSlotsGrid = document.getElementById("time-slots-grid");
 const modalCloseBtn = document.getElementById("modal-close-btn");
 
@@ -46,7 +47,7 @@ function getDayOfWeekInTimezone(date) {
 
 // API Configuration
 const API_CONFIG = {
-  baseURL: "https://auctus-app.vercel.app",
+  baseURL: "http://localhost:3001",
   clientId: "15",
 };
 
@@ -273,7 +274,6 @@ async function submitBooking() {
 
     // Reset form and calendar
     bookingForm.reset();
-    appointmentTimeSelect.innerHTML = `<option value="" disabled selected>Select a time</option>`;
     calendarState.selectedDate = null;
     await fetchAvailability();
     renderCalendar();
@@ -304,7 +304,11 @@ function showConfirmationModal(bookingData) {
     timeZone: 'Pacific/Auckland'
   });
   
+  // Generate a booking confirmation code
+  const confirmCode = generateBookingCode();
+  
   // Populate modal with booking details
+  document.getElementById('confirm-code').textContent = confirmCode;
   document.getElementById('confirm-date').textContent = formattedDate;
   document.getElementById('confirm-time').textContent = 
     `${formatTime12Hour(bookingData.startTime)} - ${formatTime12Hour(bookingData.endTime)}`;
@@ -316,6 +320,16 @@ function showConfirmationModal(bookingData) {
   const modal = document.getElementById('confirmation-modal');
   modal.classList.remove('hidden');
   modal.style.display = 'flex';
+}
+
+function generateBookingCode() {
+  // Generate a 6-character alphanumeric code
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
 }
 
 function closeConfirmationModal() {
@@ -380,16 +394,19 @@ function renderCalendar() {
     if (isBlocked) {
       cell.classList.add("blocked-date");
       cell.disabled = true;
-      cell.title = "This date is unavailable";
+      cell.title = "This date is closed";
       console.log('🚫 Rendering blocked date:', dateStr);
     } else {
       const availableSlots = getAvailableSlots(dateStr);
       if (availableSlots && availableSlots.length > 0) {
         cell.classList.add("available");
+        cell.setAttribute("data-slot-count", availableSlots.length);
+        cell.title = `${availableSlots.length} ${availableSlots.length === 1 ? 'slot' : 'slots'} available`;
         cell.addEventListener("click", () => handleDateSelection(date, dateStr, availableSlots));
       } else {
         cell.classList.add("booked");
         cell.disabled = true;
+        cell.title = "Fully booked";
       }
     }
 
@@ -428,6 +445,14 @@ function openTimeSlotModal(dateStr, availableSlots) {
 
   modalDateTitle.textContent = formattedDate;
 
+  // Display total slot count
+  const totalSlots = availableSlots.length;
+  if (totalSlots > 0) {
+    modalSlotCount.textContent = `${totalSlots} ${totalSlots === 1 ? 'time slot' : 'time slots'} available`;
+  } else {
+    modalSlotCount.textContent = 'No available slots';
+  }
+
   // Generate all possible time slots
   const allSlots = generateAllTimeSlots(dateStr);
 
@@ -456,18 +481,22 @@ function openTimeSlotModal(dateStr, availableSlots) {
   // Build the modal content with period sections
   timeSlotsGrid.innerHTML = "";
 
+  const morningAvailCount = morningSlots.filter(s => s.isAvailable).length;
+  const afternoonAvailCount = afternoonSlots.filter(s => s.isAvailable).length;
+  const eveningAvailCount = eveningSlots.filter(s => s.isAvailable).length;
+
   if (morningSlots.length > 0) {
-    const section = createPeriodSection("Morning", morningSlots, dateStr);
+    const section = createPeriodSection("Morning", morningSlots, morningAvailCount, dateStr);
     timeSlotsGrid.appendChild(section);
   }
 
   if (afternoonSlots.length > 0) {
-    const section = createPeriodSection("Afternoon", afternoonSlots, dateStr);
+    const section = createPeriodSection("Afternoon", afternoonSlots, afternoonAvailCount, dateStr);
     timeSlotsGrid.appendChild(section);
   }
 
   if (eveningSlots.length > 0) {
-    const section = createPeriodSection("Evening", eveningSlots, dateStr);
+    const section = createPeriodSection("Evening", eveningSlots, eveningAvailCount, dateStr);
     timeSlotsGrid.appendChild(section);
   }
 
@@ -478,13 +507,13 @@ function openTimeSlotModal(dateStr, availableSlots) {
   timeSlotModal.classList.remove("hidden");
 }
 
-function createPeriodSection(periodName, slots, dateStr) {
+function createPeriodSection(periodName, slots, availCount, dateStr) {
   const section = document.createElement("div");
   section.className = "time-period-section";
 
   const label = document.createElement("div");
   label.className = "time-period-label";
-  label.textContent = periodName;
+  label.textContent = `${periodName} (${availCount} available)`;
   section.appendChild(label);
 
   const grid = document.createElement("div");
@@ -496,6 +525,7 @@ function createPeriodSection(periodName, slots, dateStr) {
     button.className = `time-slot-btn ${slot.isAvailable ? "available" : "booked"}`;
     button.textContent = formatTime12Hour(slot.startTime);
     button.disabled = !slot.isAvailable;
+    button.title = slot.isAvailable ? `${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}` : 'Booked';
 
     if (slot.isAvailable) {
       button.addEventListener("click", () => {
@@ -546,8 +576,7 @@ function generateAllTimeSlots(dateStr) {
 
 function selectTimeSlot(dateStr, slot) {
   appointmentDateInput.value = dateStr;
-  appointmentTimeSelect.value = `${slot.startTime} - ${slot.endTime}`;
-  appointmentTimeSelect.innerHTML = `<option value="" disabled>Select a time</option><option value="${slot.startTime} - ${slot.endTime}" selected>${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}</option>`;
+  appointmentTimeSelect.value = `${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}`;
   closeTimeSlotModal();
   renderCalendar();
 }
