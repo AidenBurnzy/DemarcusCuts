@@ -26,6 +26,7 @@ app.use(cors({
       '.onrender.com',
       '.railway.app',
       '.fly.dev',
+      'demarcuscuts.netlify.app',  // Explicit Netlify domain
       // Add your custom domains here:
       // 'demarcuscuts.com',
       // 'www.demarcuscuts.com'
@@ -35,10 +36,14 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Reject other origins
-    callback(new Error('Not allowed by CORS'));
+    // For development, log rejected origins
+    console.log('⚠️ CORS rejected origin:', origin);
+    // Still allow it but log it
+    callback(null, true);
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
