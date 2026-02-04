@@ -47,7 +47,9 @@ function getDayOfWeekInTimezone(date) {
 
 // API Configuration
 const API_CONFIG = {
-  baseURL: "http://localhost:3001",
+  baseURL: window.location.hostname === 'localhost' 
+    ? "http://localhost:3001"
+    : `${window.location.protocol}//${window.location.hostname.replace('-8000', '-3001')}`,
   clientId: "15",
 };
 

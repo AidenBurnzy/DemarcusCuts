@@ -6,8 +6,23 @@ const { pool, initializeDatabase, mockDatabase, isConnected } = require('./db');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// Middleware - Allow CORS from any GitHub Codespace URL
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for local development
+    if (origin.includes('localhost')) return callback(null, true);
+    
+    // Allow GitHub Codespaces URLs
+    if (origin.includes('.app.github.dev')) return callback(null, true);
+    
+    // Reject other origins
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 app.use(express.json());
 
 // Initialize database on startup
@@ -253,7 +268,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 DemarcusCuts backend running on port ${PORT}`);
   console.log(`📊 Using Neon Postgres database`);
 });
