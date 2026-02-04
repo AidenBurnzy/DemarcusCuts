@@ -220,8 +220,11 @@ async function saveSettings() {
 
 async function loadBookings() {
   try {
-    const response = await fetch(`${API_CONFIG.baseURL}/api/admin/bookings`);
-    const bookings = await response.json();
+    const response = await fetch(
+      `${API_CONFIG.baseURL}/api/bookings/availability?clientId=${API_CONFIG.clientId}`
+    );
+    const data = await response.json();
+    const bookings = data.bookings || [];
     renderBookings(bookings);
   } catch (error) {
     console.error('Failed to load bookings:', error);
