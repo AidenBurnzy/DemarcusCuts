@@ -75,7 +75,13 @@ const API_CONFIG = {
 
 // Log and validate API configuration
 console.log('🔧 API Configuration:', API_CONFIG.baseURL);
-if (!API_CONFIG.baseURL || API_CONFIG.baseURL === window.location.origin) {
+const hasMetaUrl = (() => {
+  const metaTag = document.querySelector('meta[name="api-base-url"]');
+  const metaUrl = metaTag?.getAttribute('content');
+  return !!(metaUrl && metaUrl.trim() !== '' && !metaUrl.includes('your-backend'));
+})();
+
+if (!hasMetaUrl && !API_CONFIG.baseURL) {
   if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('app.github.dev')) {
     console.warn('⚠️ DEPLOYMENT WARNING: Backend API URL not configured!');
     console.warn('💡 Add your backend URL to the meta tag in index.html:');
