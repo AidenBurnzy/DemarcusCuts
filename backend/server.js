@@ -335,10 +335,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 DemarcusCuts backend running on port ${PORT}`);
-  console.log(`📊 Using Neon Postgres database`);
-  if (process.env.SERVE_STATIC === 'true') {
-    console.log(`📂 Serving frontend static files`);
-  }
-});
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 DemarcusCuts backend running on port ${PORT}`);
+    console.log(`📊 Using Neon Postgres database`);
+    if (process.env.SERVE_STATIC === 'true') {
+      console.log(`📂 Serving frontend static files`);
+    }
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
