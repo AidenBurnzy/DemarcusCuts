@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { pool, initializeDatabase } = require('./db');
+const { pool, initializeDatabase, mockDatabase, isConnected } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -15,7 +15,7 @@ initializeDatabase();
 
 // Routes
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', message: 'DemarcusCuts backend is running' });
+  res.json({ status: 'OK', message: 'DemarcusCuts backend is running', mode: isConnected() ? 'database' : 'demo' });
 });
 
 // Get availability for booking calendar
@@ -25,6 +25,46 @@ app.get('/api/bookings/availability', async (req, res) => {
 
     if (!clientId) {
       return res.status(400).json({ error: 'clientId is required' });
+    }
+
+    // Use mock database if not connected
+    if (!isConnected()) {
+      const settings = mockDatabase.settings.find(s => s.client_id == clientId) || {
+        slot_duration: 60,
+        buffer_time: 15,
+        min_advance_booking: 24,
+        max_advance_booking: 2160,
+        require_approval: false,
+        timezone: 'Pacific/Auckland'
+      };
+
+      const schedules = mockDatabase.schedules.filter(s => s.client_id == clientId).map(s => ({
+        dayOfWeek: s.day_of_week,
+        startTime: s.start_time,
+        endTime: s.end_time,
+        isEnabled: true
+      }));
+
+      const overrides = mockDatabase.overrides.filter(o => o.client_id == clientId && o.date >= startDate && o.date <= endDate).map(o => ({
+        date: o.date + 'T00:00:00Z',
+        startTime: o.start_time,
+        endTime: o.end_time,
+        isAvailable: o.is_available
+      }));
+
+      const bookings = mockDatabase.bookings.filter(b => b.client_id == clientId && b.date >= startDate && b.date <= endDate).map(b => ({
+        date: b.date,
+        startTime: b.start_time,
+        endTime: b.end_time
+      }));
+
+      return res.json({
+        settings,
+        schedules,
+        overrides,
+        bookings,
+        mode: 'demo'
+      });
     }
 
     const client = await pool.connect();
@@ -99,6 +139,41 @@ app.post('/api/bookings', async (req, res) => {
 
     if (!clientId || !customerName || !customerEmail || !date || !startTime || !endTime) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Use mock database if not connected
+    if (!isConnected()) {
+      // Check if time slot is already booked
+      const existingBooking = mockDatabase.bookings.find(
+        b => b.client_id == clientId && b.date === date && b.start_time === startTime
+      );
+
+      if (existingBooking) {
+        return res.status(409).json({ error: 'This time slot is already booked' });
+      }
+
+      // Create new booking
+      const newBooking = {
+        id: mockDatabase.bookings.length + 1,
+        client_id: clientId,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_phone: customerPhone || null,
+        date: date,
+        start_time: startTime,
+        end_time: endTime,
+        notes: notes || null,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+
+      mockDatabase.bookings.push(newBooking);
+
+      return res.status(201).json({
+        id: newBooking.id,
+        message: 'Booking created successfully (demo mode)',
+        booking: newBooking
+      });
     }
 
     const client = await pool.connect();

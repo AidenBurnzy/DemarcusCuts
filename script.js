@@ -106,7 +106,7 @@ async function initializeCalendar() {
 // Fetch availability from Auctus API
 async function fetchAvailability() {
   const startDate = formatISODate(calendarState.current);
-  const endDate = formatISODate(addDays(calendarState.current, 90));
+  const endDate = formatISODate(addDays(calendarState.current, 365));
 
   try {
     const response = await fetch(

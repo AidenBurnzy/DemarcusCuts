@@ -1,6 +1,16 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Mock database for demo mode
+let mockDatabase = {
+  bookings: [],
+  schedules: [],
+  overrides: [],
+  settings: []
+};
+
+let isConnected = false;
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
@@ -16,6 +26,7 @@ async function initializeDatabase() {
   try {
     const client = await pool.connect();
     console.log('✅ Connected to Neon Postgres database');
+    isConnected = true;
     
     // Create tables if they don't exist
     await client.query(`
@@ -77,7 +88,7 @@ async function initializeDatabase() {
     // Initialize default settings for client 15 if not exists
     await client.query(`
       INSERT INTO settings (client_id, slot_duration, buffer_time, min_advance_booking, max_advance_booking, timezone)
-      VALUES (15, 60, 15, 24, 2160, 'Pacific/Auckland')
+      VALUES (15, 60, 15, 24, 8760, 'Pacific/Auckland')
       ON CONFLICT (client_id) DO NOTHING;
     `);
 
@@ -104,8 +115,42 @@ async function initializeDatabase() {
     console.log('✅ Database tables initialized');
     client.release();
   } catch (err) {
-    console.error('Error initializing database:', err);
+    console.error('⚠️ Database connection failed, using demo mode:', err.message);
+    console.log('🎭 Running in DEMO MODE - data will not persist');
+    
+    // Initialize mock database with demo data
+    initializeMockDatabase();
   }
 }
 
-module.exports = { pool, initializeDatabase };
+function initializeMockDatabase() {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  
+  mockDatabase.settings = [
+    {
+      id: 1,
+      client_id: 15,
+      slot_duration: 60,
+      buffer_time: 15,
+      min_advance_booking: 24,
+      max_advance_booking: 8760,
+      timezone: 'Pacific/Auckland'
+    }
+  ];
+  
+  mockDatabase.schedules = [
+    { id: 1, client_id: 15, day_of_week: 1, start_time: '09:00', end_time: '18:00' },
+    { id: 2, client_id: 15, day_of_week: 2, start_time: '09:00', end_time: '18:00' },
+    { id: 3, client_id: 15, day_of_week: 3, start_time: '09:00', end_time: '18:00' },
+    { id: 4, client_id: 15, day_of_week: 4, start_time: '09:00', end_time: '18:00' },
+    { id: 5, client_id: 15, day_of_week: 5, start_time: '09:00', end_time: '17:00' },
+    { id: 6, client_id: 15, day_of_week: 6, start_time: '10:00', end_time: '15:00' },
+  ];
+  
+  mockDatabase.bookings = [];
+  mockDatabase.overrides = [];
+}
+
+module.exports = { pool, initializeDatabase, mockDatabase, isConnected: () => isConnected };
