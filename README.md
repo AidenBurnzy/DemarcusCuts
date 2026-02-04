@@ -35,7 +35,27 @@ Frontend available at `http://localhost:8000`
 - ✅ **Database**: Connected to Neon Postgres (Pacific/Auckland timezone)
 - ✅ **Schedules**: Monday-Saturday configured (9am-6pm/5pm)
 - ✅ **Booking System**: Real-time availability and conflict prevention
+- ✅ **Admin Portal**: Manage schedules, overrides, settings, and bookings
 - ✅ **Error Handling**: Graceful fallback to demo mode if backend unavailable
+
+## 🔐 Admin Portal
+
+Access the admin portal at `admin.html` to:
+- View and manage bookings
+- Configure weekly schedules
+- Block specific dates or set custom hours
+- Adjust booking settings (duration, buffer time, timezone)
+
+**Local Access**: http://localhost:8000/admin.html
+
+**Note**: Some admin features (schedule/override editing) require additional backend endpoints. The portal currently supports:
+- ✅ View all bookings
+- ✅ Confirm/cancel bookings
+- ✅ View current configuration
+- 🚧 Edit schedules (coming soon)
+- 🚧 Add/remove overrides (coming soon)
+
+Alternatively, use the Auctus portal: https://auctus-app.vercel.app/portal/availability
 
 ## 🌍 Deployment
 

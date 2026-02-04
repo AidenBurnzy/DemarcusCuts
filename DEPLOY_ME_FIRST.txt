@@ -1,0 +1,48 @@
+⚠️ DEPLOYMENT REQUIRED ⚠️
+=========================
+
+Your frontend is deployed but the backend URL needs to be configured!
+
+QUICK FIX (2 minutes):
+----------------------
+
+Step 1: Deploy your backend
+   - Go to render.com (or railway.app, fly.io)
+   - Create new Web Service
+   - Connect this GitHub repo
+   - Set root directory: "backend"
+   - Add environment variable: DATABASE_URL=postgresql://neondb_owner:npg_V26JqtgAwWaj@ep-lucky-wave-ahvajv2i-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+   - Deploy!
+   - Copy your backend URL (e.g., https://demarcuscuts-api.onrender.com)
+
+Step 2: Update frontend configuration
+   - Edit index.html line 6
+   - Replace: <meta name="api-base-url" content="https://demarcuscuts-api.onrender.com" />
+   - With your actual backend URL from Step 1
+   - Commit and push to GitHub
+   - Netlify will auto-redeploy
+
+Step 3: Test
+   - Open your site: https://demarcuscuts.netlify.app
+   - Open browser console (F12)
+   - Should see: "🔧 API Configuration: https://your-backend-url.com"
+   - No more 404 errors!
+
+ALTERNATIVE: Unified Deployment
+-------------------------------
+Deploy everything together on one service:
+   - Use Render or Railway
+   - Set environment variable: SERVE_STATIC=true
+   - Deploy entire repo (not just backend)
+   - Access via single URL
+
+CURRENT STATUS:
+--------------
+✅ Frontend: Deployed to Netlify
+❌ Backend: NOT DEPLOYED (causing 404 errors)
+✅ Database: Connected to Neon Postgres
+
+The placeholder URL in index.html is:
+https://demarcuscuts-api.onrender.com
+
+Replace this with your actual backend URL after deploying!

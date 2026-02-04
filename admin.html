@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="api-base-url" content="https://demarcuscuts-api.onrender.com" />
+    <title>Admin Portal - DemarcusCuts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: #e9ecef;
+        }
+
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .schedule-day {
+            display: grid;
+            grid-template-columns: 120px 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .schedule-day label {
+            margin: 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            background: #c82333;
+        }
+
+        button.secondary {
+            background: #6c757d;
+        }
+
+        button.secondary:hover {
+            background: #545b62;
+        }
+
+        .override-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bookings-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .bookings-table th,
+        .bookings-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .bookings-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.confirmed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔧 DemarcusCuts Admin Portal</h1>
+            <span class="status connected" id="connectionStatus">Connecting...</span>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('schedules')">Weekly Schedule</button>
+            <button class="tab-btn" onclick="switchTab('overrides')">Date Overrides</button>
+            <button class="tab-btn" onclick="switchTab('settings')">Settings</button>
+            <button class="tab-btn" onclick="switchTab('bookings')">View Bookings</button>
+        </div>
+
+        <!-- Schedules Tab -->
+        <div id="schedules-tab" class="tab-content active">
+            <h2>Weekly Schedule</h2>
+            <p style="color: #6c757d; margin-bottom: 20px;">Set your regular business hours for each day of the week.</p>
+            
+            <div id="schedulesList" class="schedule-grid">
+                <div class="loading">Loading schedules...</div>
+            </div>
+        </div>
+
+        <!-- Overrides Tab -->
+        <div id="overrides-tab" class="tab-content">
+            <h2>Date Overrides</h2>
+            <p style="color: #6c757d; margin-bottom: 20px;">Block specific dates or set custom hours.</p>
+            
+            <div id="overrideMessage"></div>
+            
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="overrideDate">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="blockDate" onchange="toggleOverrideHours()"> 
+                    Block this date (closed all day)
+                </label>
+            </div>
+            
+            <div id="overrideHours">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" id="overrideStart">
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" id="overrideEnd">
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="addOverride()">Add Override</button>
+            
+            <h3 style="margin-top: 30px;">Existing Overrides</h3>
+            <div id="overridesList">
+                <div class="loading">Loading overrides...</div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <h2>Booking Settings</h2>
+            <p style="color: #6c757d; margin-bottom: 20px;">Configure your booking system preferences.</p>
+            
+            <div id="settingsMessage"></div>
+            
+            <div class="form-group">
+                <label>Appointment Duration (minutes)</label>
+                <input type="number" id="slotDuration" min="15" step="15" value="60">
+            </div>
+            
+            <div class="form-group">
+                <label>Buffer Time Between Appointments (minutes)</label>
+                <input type="number" id="bufferTime" min="0" step="5" value="15">
+            </div>
+            
+            <div class="form-group">
+                <label>Minimum Advance Booking (hours)</label>
+                <input type="number" id="minAdvance" min="0" value="24">
+            </div>
+            
+            <div class="form-group">
+                <label>Maximum Advance Booking (hours)</label>
+                <input type="number" id="maxAdvance" min="1" value="8760">
+                <small style="color: #6c757d;">8760 hours = 1 year</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Timezone</label>
+                <select id="timezone">
+                    <option value="Pacific/Auckland">Pacific/Auckland (New Zealand)</option>
+                    <option value="America/New_York">America/New_York (EST)</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                    <option value="Europe/London">Europe/London (GMT)</option>
+                    <option value="Australia/Sydney">Australia/Sydney</option>
+                </select>
+            </div>
+            
+            <button onclick="saveSettings()">Save Settings</button>
+        </div>
+
+        <!-- Bookings Tab -->
+        <div id="bookings-tab" class="tab-content">
+            <h2>Recent Bookings</h2>
+            <p style="color: #6c757d; margin-bottom: 20px;">View and manage customer bookings.</p>
+            
+            <div id="bookingsList">
+                <div class="loading">Loading bookings...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

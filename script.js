@@ -51,23 +51,23 @@ const API_CONFIG = {
     // Check for meta tag configuration (for deployment)
     const metaTag = document.querySelector('meta[name="api-base-url"]');
     const metaUrl = metaTag?.getAttribute('content');
-    if (metaUrl && metaUrl.trim() !== '') {
+    if (metaUrl && metaUrl.trim() !== '' && !metaUrl.includes('your-backend')) {
       return metaUrl;
     }
     
     // For localhost development
-    if (window.location.hostname === 'localhost') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       return "http://localhost:3001";
     }
     
     // For GitHub Codespaces (*.app.github.dev)
     if (window.location.hostname.includes('app.github.dev')) {
-      // Replace port in the hostname for GitHub Codespaces forwarded ports
       return `${window.location.protocol}//${window.location.hostname.replace('-8000', '-3001')}`;
     }
     
-    // For production - assume backend is served from same origin
-    // This works if you deploy frontend and backend together (e.g., Express serving static files)
+    // Default for production - you MUST configure the meta tag for this to work
+    // This fallback won't work unless backend is on same domain
+    console.warn('⚠️ No backend URL configured - using same origin (likely to fail)');
     return window.location.origin;
   })(),
   clientId: "15",
