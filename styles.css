@@ -553,6 +553,35 @@ img {
   color: rgba(245, 245, 245, 0.6);
 }
 
+/* Cancellation Notice */
+.cancellation-notice {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(255, 193, 7, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.25);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.cancellation-text {
+  color: rgba(245, 245, 245, 0.85);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.cancellation-text strong {
+  color: rgba(255, 193, 7, 0.95);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.contact-placeholder {
+  color: rgba(255, 193, 7, 0.8);
+  font-weight: 500;
+  font-style: italic;
+}
+
 .contact-section {
   background: #050505;
 }
@@ -812,8 +841,11 @@ img {
 .confirmation-modal {
   max-width: 500px;
   padding: 0;
-  overflow: hidden;
+  overflow-y: auto;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
 }
 
 .confirmation-header {
@@ -865,6 +897,8 @@ img {
 .confirmation-body {
   padding: 1.75rem;
   background: rgba(12, 12, 12, 0.95);
+  overflow-y: auto;
+  flex: 1;
 }
 
 .confirmation-message {
@@ -1113,6 +1147,11 @@ img {
     padding: 1.5rem;
     width: 95vw;
     max-width: 95vw;
+    max-height: 95vh;
+  }
+
+  .confirmation-modal {
+    max-height: 95vh;
   }
 
   .modal-header {
@@ -1181,5 +1220,18 @@ img {
   .confirmation-note {
     font-size: 0.85rem;
     margin-bottom: 1rem;
+  }
+
+  .cancellation-notice {
+    margin-top: 2rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .cancellation-text {
+    font-size: 0.9rem;
+  }
+
+  .cancellation-text strong {
+    font-size: 0.95rem;
   }
 }
