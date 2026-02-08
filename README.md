@@ -119,3 +119,40 @@ const API_CONFIG = {
   clientId: "15",
 };
 ```
+
+## 📧 Contact Form Setup
+
+The contact form is configured to send emails to **Nicholas.auctusventures@gmail.com** using Vercel serverless functions.
+
+### Setup Instructions
+
+1. **Sign up for Resend** (free tier includes 100 emails/day):
+   - Go to [resend.com](https://resend.com)
+   - Create an account and verify your email
+   - Get your API key from the dashboard
+
+2. **Add API key to Vercel**:
+   - Go to your Vercel project dashboard
+   - Navigate to Settings → Environment Variables
+   - Add a new variable:
+     - **Name**: `RESEND_API_KEY`
+     - **Value**: Your Resend API key (starts with `re_`)
+   - Redeploy your site
+
+3. **That's it!** The contact form will now send submissions to Nicholas.auctusventures@gmail.com
+
+### How It Works
+
+- Contact form → `/api/contact.js` serverless function
+- Function validates data and sends email via Resend API
+- User sees success/error message
+- No external dependencies or page redirects
+
+### Contact Information
+
+- **Email**: Nicholas.auctusventures@gmail.com
+- **Phone**: 022 092 3501
+
+This contact info appears in:
+- Cancellation notice (booking section)
+- Contact section

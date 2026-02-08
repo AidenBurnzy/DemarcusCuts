@@ -24,6 +24,10 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/api/contact",
+      "dest": "/api/contact.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "backend/server.js"
     },

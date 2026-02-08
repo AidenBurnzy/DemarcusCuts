@@ -65,6 +65,7 @@
                   <div>
                     <h3 id="modal-date-title">Select a Time</h3>
                     <p id="modal-slot-count" class="modal-slot-count"></p>
+                    <p class="modal-instruction">Tap a time to continue</p>
                   </div>
                   <button id="modal-close-btn" class="modal-close" aria-label="Close">×</button>
                 </div>
@@ -138,7 +139,7 @@
           <div class="cancellation-notice">
             <p class="cancellation-text">
               <strong>Need to Cancel or Manage an appointment?</strong><br>
-              Reach out to: <span class="contact-placeholder">[Contact info will be added here]</span>
+              Reach out to: <a href="mailto:Nicholas.auctusventures@gmail.com" class="contact-link">Nicholas.auctusventures@gmail.com</a> or call <a href="tel:+64220923501" class="contact-link">022 092 3501</a>
             </p>
           </div>
         </div>
@@ -239,6 +240,10 @@
           <div class="contact-intro">
             <h2>Contact Demarcus</h2>
             <p>Reach out with questions, collaborations, or group bookings.</p>
+            <div class="contact-info">
+              <p><strong>Email:</strong> <a href="mailto:Nicholas.auctusventures@gmail.com" class="contact-link">Nicholas.auctusventures@gmail.com</a></p>
+              <p><strong>Phone:</strong> <a href="tel:+64220923501" class="contact-link">022 092 3501</a></p>
+            </div>
             <div class="social-links">
               <a
                 class="social-link"
@@ -276,6 +281,7 @@
               <textarea id="message" name="message" rows="4" placeholder="Tell us about your request" required></textarea>
             </div>
             <button type="submit" class="cta">Send Message</button>
+            <p class="form-status" id="contact-form-status"></p>
           </form>
         </div>
       </section>

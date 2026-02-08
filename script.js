@@ -663,6 +663,14 @@ function openTimeSlotModal(dateStr, availableSlots) {
   }
 
   timeSlotModal.classList.remove("hidden");
+  
+  // On mobile, ensure modal is visible and scroll to top
+  if (window.innerWidth <= 900) {
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      timeSlotModal.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
+  }
 }
 
 function createPeriodSection(periodName, slots, availCount, dateStr) {
@@ -740,10 +748,61 @@ function selectTimeSlot(dateStr, slot) {
   appointmentTimeSelect.dataset.endTime24 = slot.endTime;
   closeTimeSlotModal();
   renderCalendar();
+  
+  // On mobile, scroll to form and highlight it
+  if (window.innerWidth <= 900) {
+    // Show notification banner
+    showMobileNotification('✓ Time selected! Complete your booking below');
+    
+    setTimeout(() => {
+      const bookingForm = document.getElementById('booking-form');
+      if (bookingForm) {
+        bookingForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        bookingForm.classList.add('form-highlight');
+        
+        // Remove highlight after animation
+        setTimeout(() => {
+          bookingForm.classList.remove('form-highlight');
+        }, 2000);
+      }
+    }, 300);
+  }
 }
 
 function closeTimeSlotModal() {
   timeSlotModal.classList.add("hidden");
+  
+  // Re-enable body scroll on mobile
+  if (window.innerWidth <= 900) {
+    document.body.style.overflow = '';
+  }
+}
+
+function showMobileNotification(message) {
+  // Remove existing notification if any
+  const existingNotif = document.querySelector('.mobile-notification');
+  if (existingNotif) {
+    existingNotif.remove();
+  }
+  
+  // Create notification
+  const notification = document.createElement('div');
+  notification.className = 'mobile-notification';
+  notification.textContent = message;
+  document.body.appendChild(notification);
+  
+  // Trigger animation
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 10);
+  
+  // Remove after 3 seconds
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 3000);
 }
 
 // Calculate available time slots for a specific date
@@ -887,4 +946,54 @@ function formatISODate(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
     date.getDate()
   ).padStart(2, "0")}`;
+}
+
+// Contact form handler
+const contactForm = document.getElementById('contact-form');
+if (contactForm) {
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(contactForm);
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const statusMsg = document.getElementById('contact-form-status');
+    
+    // Disable button and show loading state
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    statusMsg.textContent = '';
+    statusMsg.className = 'form-status';
+    
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.get('name'),
+          email: formData.get('email'),
+          phone: formData.get('phone'),
+          message: formData.get('message')
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        statusMsg.textContent = '✓ Message sent successfully! We\'ll get back to you soon.';
+        statusMsg.className = 'form-status success';
+        contactForm.reset();
+      } else {
+        throw new Error(data.error || 'Failed to send message');
+      }
+    } catch (error) {
+      console.error('Contact form error:', error);
+      statusMsg.textContent = '✗ Failed to send message. Please try emailing us directly.';
+      statusMsg.className = 'form-status error';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Message';
+    }
+  });
 }
