@@ -418,7 +418,9 @@ img {
 .calendar-cell.blocked-date:hover {
   background: transparent !important;
   transform: none !important;
-  box-shadow: inset 0 0 8px rgba(244, 67, 54, 0.1);
+  box-shadow: none !important;
+  border-color: rgba(244, 67, 54, 0.4) !important;
+  opacity: 0.8;
 }
 
 .calendar-cell.blocked-date::after {
