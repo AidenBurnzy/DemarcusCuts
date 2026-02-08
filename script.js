@@ -118,10 +118,21 @@ timeSlotModal.addEventListener("click", (e) => {
   if (e.target === timeSlotModal) closeTimeSlotModal();
 });
 
+// Confirmation modal listeners
+const confirmationModal = document.getElementById('confirmation-modal');
+if (confirmationModal) {
+  confirmationModal.addEventListener("click", (e) => {
+    if (e.target === confirmationModal) closeConfirmationModal();
+  });
+}
+
 // Close modal on Escape key
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !timeSlotModal.classList.contains("hidden")) {
     closeTimeSlotModal();
+  }
+  if (e.key === "Escape" && confirmationModal && !confirmationModal.classList.contains("hidden")) {
+    closeConfirmationModal();
   }
 });
 
@@ -280,7 +291,9 @@ async function submitBooking() {
     return;
   }
 
-  const [startTime, endTime] = selectedTime.split(" - ");
+  // Get 24-hour format times from data attributes
+  const startTime = appointmentTimeSelect.dataset.startTime24;
+  const endTime = appointmentTimeSelect.dataset.endTime24;
 
   try {
     // Disable button and show loading state
@@ -636,6 +649,9 @@ function generateAllTimeSlots(dateStr) {
 function selectTimeSlot(dateStr, slot) {
   appointmentDateInput.value = dateStr;
   appointmentTimeSelect.value = `${formatTime12Hour(slot.startTime)} - ${formatTime12Hour(slot.endTime)}`;
+  // Store 24-hour format times as data attributes for backend submission
+  appointmentTimeSelect.dataset.startTime24 = slot.startTime;
+  appointmentTimeSelect.dataset.endTime24 = slot.endTime;
   closeTimeSlotModal();
   renderCalendar();
 }
@@ -683,13 +699,21 @@ function getAvailableSlots(dateStr) {
 
   // Get bookings for this specific date (handle ISO timestamp format)
   const dayBookings = (bookings || []).filter(b => {
-    const bookingDate = b.date.split('T')[0]; // Extract YYYY-MM-DD from ISO timestamp
+    const bookingDate = typeof b.date === 'string' ? b.date.split('T')[0] : b.date;
     return bookingDate === dateStr;
   });
   const dayAppointments = calendarState.appointments.filter(apt => {
-    const aptDate = (apt.date || apt.appointment_date || '').split('T')[0];
+    const aptDate = typeof apt.date === 'string' ? apt.date.split('T')[0] : apt.date;
     return aptDate === dateStr;
   });
+  
+  // Debug logging
+  if (dayBookings.length > 0 || dayAppointments.length > 0) {
+    console.log(`📅 Bookings for ${dateStr}:`, {
+      fromAPI: dayBookings,
+      fromState: dayAppointments
+    });
+  }
   
   let current = startMinutes;
   while (current + settings.slotDuration <= endMinutes) {
@@ -705,8 +729,14 @@ function getAvailableSlots(dateStr) {
     const isBookedAppointment = dayAppointments.some(
       (apt) => timeOverlaps(slotStart, slotEnd, apt.startTime || apt.start_time, apt.endTime || apt.end_time)
     );
+    
+    const isBooked = isBookedInAPI || isBookedAppointment;
+    
+    if (isBooked) {
+      console.log(`🚫 Slot ${slotStart}-${slotEnd} is booked`);
+    }
 
-    if (!isBookedInAPI && !isBookedAppointment) {
+    if (!isBooked) {
       slots.push({ startTime: slotStart, endTime: slotEnd });
     }
 

@@ -818,6 +818,23 @@ img {
   background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);
   padding: 2rem 1.75rem;
   text-align: center;
+  position: relative;
+}
+
+.confirmation-header .modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.75rem;
+  width: 2rem;
+  height: 2rem;
+}
+
+.confirmation-header .modal-close:hover,
+.confirmation-header .modal-close:focus {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
 }
 
 .success-icon {
