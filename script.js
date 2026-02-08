@@ -376,11 +376,7 @@ function showConfirmationModal(bookingData) {
     timeZone: 'Pacific/Auckland'
   });
   
-  // Generate a booking confirmation code
-  const confirmCode = generateBookingCode();
-  
   // Populate modal with booking details
-  document.getElementById('confirm-code').textContent = confirmCode;
   document.getElementById('confirm-date').textContent = formattedDate;
   document.getElementById('confirm-time').textContent = 
     `${formatTime12Hour(bookingData.startTime)} - ${formatTime12Hour(bookingData.endTime)}`;
@@ -392,16 +388,6 @@ function showConfirmationModal(bookingData) {
   const modal = document.getElementById('confirmation-modal');
   modal.classList.remove('hidden');
   modal.style.display = 'flex';
-}
-
-function generateBookingCode() {
-  // Generate a 6-character alphanumeric code
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
 }
 
 function closeConfirmationModal() {
