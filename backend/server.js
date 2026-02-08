@@ -70,7 +70,7 @@ app.get('/api/bookings/availability', async (req, res) => {
       return res.status(400).json({ error: 'clientId is required' });
     }
 
-    // Use mock database if not connected
+    // Use mock database if not connected to real database
     if (!isConnected()) {
       const settings = mockDatabase.settings.find(s => s.client_id == clientId) || {
         slot_duration: 60,
@@ -110,11 +110,12 @@ app.get('/api/bookings/availability', async (req, res) => {
       });
     }
 
+    // Use real database with DemarcusCuts tables
     const client = await pool.connect();
 
-    // Fetch settings
+    // Fetch settings from booking_settings table
     const settingsResult = await client.query(
-      'SELECT * FROM settings WHERE client_id = $1',
+      'SELECT slot_duration, buffer_time, min_advance_booking, max_advance_booking, require_approval, timezone FROM booking_settings WHERE client_id = $1',
       [clientId]
     );
     const settings = settingsResult.rows[0] || {
@@ -126,16 +127,16 @@ app.get('/api/bookings/availability', async (req, res) => {
       timezone: 'Pacific/Auckland'
     };
 
-    // Fetch schedules
+    // Fetch schedules from availability_schedules table
     const schedulesResult = await client.query(
-      'SELECT day_of_week as "dayOfWeek", start_time as "startTime", end_time as "endTime", is_enabled as "isEnabled" FROM schedules WHERE client_id = $1',
+      'SELECT day_of_week as "dayOfWeek", start_time as "startTime", end_time as "endTime", is_active as "isEnabled" FROM availability_schedules WHERE client_id = $1',
       [clientId]
     );
     const schedules = schedulesResult.rows;
 
-    // Fetch overrides
+    // Fetch overrides from availability_overrides table
     const overridesResult = await client.query(
-      'SELECT date, start_time as "startTime", end_time as "endTime", is_available as "isAvailable" FROM overrides WHERE client_id = $1 AND date BETWEEN $2 AND $3',
+      'SELECT override_date as date, start_time as "startTime", end_time as "endTime", is_available as "isAvailable" FROM availability_overrides WHERE client_id = $1 AND override_date BETWEEN $2 AND $3',
       [clientId, startDate, endDate]
     );
     const overrides = overridesResult.rows.map(o => ({
@@ -145,9 +146,9 @@ app.get('/api/bookings/availability', async (req, res) => {
       isAvailable: o.isAvailable
     }));
 
-    // Fetch bookings
+    // Fetch bookings (only non-cancelled ones)
     const bookingsResult = await client.query(
-      'SELECT date, start_time as "startTime", end_time as "endTime" FROM bookings WHERE client_id = $1 AND date BETWEEN $2 AND $3 AND status != $4',
+      'SELECT booking_date as date, start_time as "startTime", end_time as "endTime" FROM bookings WHERE client_id = $1 AND booking_date BETWEEN $2 AND $3 AND status != $4',
       [clientId, startDate, endDate, 'cancelled']
     );
     const bookings = bookingsResult.rows;
@@ -223,7 +224,7 @@ app.post('/api/bookings', async (req, res) => {
 
     // Check if time slot is already booked
     const existingBooking = await client.query(
-      'SELECT id FROM bookings WHERE client_id = $1 AND date = $2 AND start_time = $3 AND status != $4',
+      'SELECT id FROM bookings WHERE client_id = $1 AND booking_date = $2 AND start_time = $3 AND status != $4',
       [clientId, date, startTime, 'cancelled']
     );
 
@@ -234,7 +235,7 @@ app.post('/api/bookings', async (req, res) => {
 
     // Insert new booking
     const result = await client.query(
-      'INSERT INTO bookings (client_id, customer_name, customer_email, customer_phone, date, start_time, end_time, notes, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
+      'INSERT INTO bookings (client_id, customer_name, customer_email, customer_phone, booking_date, start_time, end_time, notes, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
       [clientId, customerName, customerEmail, customerPhone, date, startTime, endTime, notes, 'pending']
     );
 
@@ -262,7 +263,7 @@ app.get('/api/bookings', async (req, res) => {
 
     const client = await pool.connect();
     const result = await client.query(
-      'SELECT * FROM bookings WHERE client_id = $1 ORDER BY date DESC',
+      'SELECT * FROM bookings WHERE client_id = $1 ORDER BY booking_date DESC',
       [clientId]
     );
     client.release();
@@ -279,7 +280,7 @@ app.get('/api/admin/bookings', async (req, res) => {
   try {
     const client = await pool.connect();
     const result = await client.query(
-      'SELECT * FROM bookings ORDER BY date DESC LIMIT 100'
+      'SELECT * FROM bookings ORDER BY booking_date DESC LIMIT 100'
     );
     client.release();
 
@@ -335,16 +336,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 DemarcusCuts backend running on port ${PORT}`);
-    console.log(`📊 Using Neon Postgres database`);
-    if (process.env.SERVE_STATIC === 'true') {
-      console.log(`📂 Serving frontend static files`);
-    }
-  });
-}
-
-// Export for Vercel serverless
-module.exports = app;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 DemarcusCuts backend running on port ${PORT}`);
+  console.log(`📊 Using Neon Postgres database`);
+  if (process.env.SERVE_STATIC === 'true') {
+    console.log(`📂 Serving frontend static files`);
+  }
+});
