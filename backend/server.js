@@ -333,14 +333,23 @@ app.post('/api/contact', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Using Resend API
     const resendApiKey = process.env.RESEND_API_KEY;
     
+    // Development mode: log to console instead of sending email
     if (!resendApiKey) {
-      console.error('RESEND_API_KEY not configured');
-      return res.status(500).json({ error: 'Email service not configured' });
+      console.log('📧 [DEV MODE] Contact form submission received:');
+      console.log(`   Name: ${name}`);
+      console.log(`   Email: ${email}`);
+      console.log(`   Phone: ${phone || 'Not provided'}`);
+      console.log(`   Message: ${message}`);
+      
+      return res.status(200).json({ 
+        success: true, 
+        message: 'Email logged in development mode. Configure RESEND_API_KEY to send real emails.'
+      });
     }
 
+    // Production mode: send via Resend API
     const emailBody = {
       from: 'DemarcusCuts <onboarding@resend.dev>',
       to: ['Nicholas.auctusventures@gmail.com'],
@@ -370,10 +379,11 @@ app.post('/api/contact', async (req, res) => {
     const data = await response.json();
 
     if (!response.ok) {
-      console.error('Resend API error:', data);
+      console.error('❌ Resend API error:', data);
       return res.status(500).json({ error: 'Failed to send email', details: data });
     }
 
+    console.log('✅ Email sent successfully via Resend:', data.id);
     return res.status(200).json({ 
       success: true, 
       message: 'Email sent successfully',
@@ -381,7 +391,7 @@ app.post('/api/contact', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Contact form error:', error);
+    console.error('❌ Contact form error:', error);
     return res.status(500).json({ 
       error: 'Internal server error',
       message: error.message 
