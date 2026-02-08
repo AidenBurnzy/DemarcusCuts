@@ -326,13 +326,16 @@ app.patch('/api/bookings/:id', async (req, res) => {
 // Contact form endpoint
 app.post('/api/contact', async (req, res) => {
   try {
+    console.log('📨 Contact form request received');
     const { name, email, phone, message } = req.body;
 
     // Validate required fields
     if (!name || !email || !message) {
+      console.log('❌ Missing required fields:', { name: !!name, email: !!email, message: !!message });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    console.log('✅ Fields validated');
     const resendApiKey = process.env.RESEND_API_KEY;
     
     // Development mode: log to console instead of sending email
@@ -341,7 +344,7 @@ app.post('/api/contact', async (req, res) => {
       console.log(`   Name: ${name}`);
       console.log(`   Email: ${email}`);
       console.log(`   Phone: ${phone || 'Not provided'}`);
-      console.log(`   Message: ${message}`);
+      console.log(`   Message: ${message.substring(0, 100)}...`);
       
       return res.status(200).json({ 
         success: true, 
@@ -350,9 +353,10 @@ app.post('/api/contact', async (req, res) => {
     }
 
     // Production mode: send via Resend API
+    console.log('🔑 RESEND_API_KEY is set, sending via Resend API');
     const emailBody = {
       from: 'DemarcusCuts <onboarding@resend.dev>',
-      to: ['Nicholas.auctusventures@gmail.com'],
+      to: ['founder.auctusventures@gmail.com'],
       subject: 'New Contact Form Submission from DemarcusCuts',
       html: `
         <h2>New Contact Form Submission</h2>
@@ -367,6 +371,7 @@ app.post('/api/contact', async (req, res) => {
       reply_to: email
     };
 
+    console.log('📤 Sending request to Resend API...');
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -376,6 +381,7 @@ app.post('/api/contact', async (req, res) => {
       body: JSON.stringify(emailBody)
     });
 
+    console.log(`📬 Resend API responded with status: ${response.status}`);
     const data = await response.json();
 
     if (!response.ok) {
@@ -391,7 +397,8 @@ app.post('/api/contact', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Contact form error:', error);
+    console.error('❌ Contact form error:', error.message);
+    console.error('   Stack:', error.stack);
     return res.status(500).json({ 
       error: 'Internal server error',
       message: error.message 
