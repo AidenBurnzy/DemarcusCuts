@@ -122,7 +122,12 @@ timeSlotModal.addEventListener("click", (e) => {
 const confirmationModal = document.getElementById('confirmation-modal');
 if (confirmationModal) {
   confirmationModal.addEventListener("click", (e) => {
-    if (e.target === confirmationModal) closeConfirmationModal();
+    if (e.target === confirmationModal) {
+      const doneBtn = document.getElementById('done-btn');
+      if (!doneBtn || !doneBtn.disabled) {
+        closeConfirmationModal();
+      }
+    }
   });
 }
 
@@ -132,7 +137,10 @@ document.addEventListener("keydown", (e) => {
     closeTimeSlotModal();
   }
   if (e.key === "Escape" && confirmationModal && !confirmationModal.classList.contains("hidden")) {
-    closeConfirmationModal();
+    const doneBtn = document.getElementById('done-btn');
+    if (!doneBtn || !doneBtn.disabled) {
+      closeConfirmationModal();
+    }
   }
 });
 
@@ -384,13 +392,105 @@ function showConfirmationModal(bookingData) {
   document.getElementById('confirm-email').textContent = bookingData.customerEmail;
   document.getElementById('confirm-phone').textContent = bookingData.customerPhone || '—';
   
+  // Store booking data for calendar export
+  window.currentBookingData = bookingData;
+  
+  // Start countdown timer for Done button
+  startDoneButtonCooldown();
+  
   // Show the confirmation modal
   const modal = document.getElementById('confirmation-modal');
   modal.classList.remove('hidden');
   modal.style.display = 'flex';
 }
 
+function startDoneButtonCooldown() {
+  const doneBtn = document.getElementById('done-btn');
+  const countdownSpan = document.getElementById('countdown');
+  const closeButtons = document.querySelectorAll('.confirmation-header .modal-close');
+  let timeLeft = 3;
+  
+  doneBtn.disabled = true;
+  
+  // Disable X close button during cooldown
+  closeButtons.forEach(btn => {
+    btn.disabled = true;
+    btn.style.opacity = '0.3';
+    btn.style.cursor = 'not-allowed';
+  });
+  
+  const interval = setInterval(() => {
+    timeLeft--;
+    countdownSpan.textContent = timeLeft;
+    
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      doneBtn.textContent = 'Done';
+      doneBtn.disabled = false;
+      
+      // Re-enable X close button
+      closeButtons.forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = '';
+      });
+    }
+  }, 1000);
+}
+
+function addToCalendar() {
+  if (!window.currentBookingData) return;
+  
+  const booking = window.currentBookingData;
+  
+  // Create ICS calendar event
+  const startDateTime = `${booking.date}T${booking.startTime}:00`;
+  const endDateTime = `${booking.date}T${booking.endTime}:00`;
+  
+  // Format for ICS file (remove hyphens and colons)
+  const formatICS = (dateTime) => {
+    return dateTime.replace(/[-:]/g, '');
+  };
+  
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//DemarcusCuts//Booking//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `DTSTART:${formatICS(startDateTime)}`,
+    `DTEND:${formatICS(endDateTime)}`,
+    'SUMMARY:Haircut Appointment - DemarcusCuts',
+    `DESCRIPTION:Appointment with DemarcusCuts\nName: ${booking.customerName}\nEmail: ${booking.customerEmail}${booking.customerPhone ? `\nPhone: ${booking.customerPhone}` : ''}${booking.notes ? `\nNotes: ${booking.notes}` : ''}`,
+    'LOCATION:DemarcusCuts',
+    'STATUS:CONFIRMED',
+    'BEGIN:VALARM',
+    'TRIGGER:-PT1H',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Reminder: Haircut appointment in 1 hour',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+  
+  // Create download link
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = window.URL.createObjectURL(blob);
+  link.download = 'demarcuscuts-appointment.ics';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 function closeConfirmationModal() {
+  // Check if cooldown is active
+  const doneBtn = document.getElementById('done-btn');
+  if (doneBtn && doneBtn.disabled) {
+    return; // Don't close during cooldown
+  }
+  
   const modal = document.getElementById('confirmation-modal');
   modal.classList.add('hidden');
   modal.style.display = 'none';

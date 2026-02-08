@@ -292,6 +292,7 @@
         </div>
         <div class="confirmation-body">
           <p class="confirmation-message">Your appointment has been successfully booked.</p>
+          <p class="save-reminder"><strong>📸 Remember to screenshot or save this information!</strong></p>
           
           <div class="booking-details">
             <div class="detail-row">
@@ -317,7 +318,8 @@
           </div>
         </div>
         <div class="confirmation-footer">
-          <button class="cta" onclick="closeConfirmationModal()">Done</button>
+          <button class="cta add-calendar-btn" onclick="addToCalendar()" style="background: rgba(76, 175, 80, 0.9); margin-bottom: 0.75rem;">📅 Add to Calendar</button>
+          <button id="done-btn" class="cta" onclick="closeConfirmationModal()" disabled>Done (<span id="countdown">3</span>)</button>
         </div>
       </div>
     </div>
