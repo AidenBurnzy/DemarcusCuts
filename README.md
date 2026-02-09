@@ -122,7 +122,7 @@ const API_CONFIG = {
 
 ## 📧 Contact Form Setup
 
-The contact form is configured to send emails to **Nicholas.auctusventures@gmail.com** using Vercel serverless functions.
+The contact form is configured to send emails to **nicholas.fultz01@gmail.com** using Vercel serverless functions.
 
 ### Setup Instructions
 
@@ -139,7 +139,7 @@ The contact form is configured to send emails to **Nicholas.auctusventures@gmail
      - **Value**: Your Resend API key (starts with `re_`)
    - Redeploy your site
 
-3. **That's it!** The contact form will now send submissions to Nicholas.auctusventures@gmail.com
+3. **That's it!** The contact form will now send submissions to nicholas.fultz01@gmail.com
 
 ### How It Works
 
@@ -150,7 +150,7 @@ The contact form is configured to send emails to **Nicholas.auctusventures@gmail
 
 ### Contact Information
 
-- **Email**: Nicholas.auctusventures@gmail.com
+- **Email**: nicholas.fultz01@gmail.com
 - **Phone**: 022 092 3501
 
 This contact info appears in:

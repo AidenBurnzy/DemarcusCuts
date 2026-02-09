@@ -356,7 +356,7 @@ app.post('/api/contact', async (req, res) => {
     console.log('🔑 RESEND_API_KEY is set, sending via Resend API');
     const emailBody = {
       from: 'DemarcusCuts <onboarding@resend.dev>',
-      to: ['founder.auctusventures@gmail.com'],
+      to: ['nicholas.fultz01@gmail.com'],
       subject: 'New Contact Form Submission from DemarcusCuts',
       html: `
         <h2>New Contact Form Submission</h2>
