@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
     const emailBody = {
       from: 'DemarcusCuts <onboarding@resend.dev>', // Will be replaced with your verified domain
-      to: ['Nicholas.auctusventures@gmail.com'],
+      to: ['calvomarc36@gmail.com'],
       subject: 'New Contact Form Submission from DemarcusCuts',
       html: `
         <h2>New Contact Form Submission</h2>
