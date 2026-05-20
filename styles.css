@@ -380,28 +380,13 @@ img {
 }
 
 .calendar-cell.booked {
-  color: rgba(245, 245, 245, 0.3);
-  border-color: rgba(245, 245, 245, 0.2);
+  color: rgba(244, 67, 54, 0.7);
+  border-color: rgba(244, 67, 54, 0.5);
   background-color: transparent;
   cursor: not-allowed;
   position: relative;
   border-width: 2px;
   font-weight: 500;
-}
-
-.calendar-cell.booked::before {
-  content: 'FULL';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: rgba(245, 245, 245, 0.3);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
 }
 
 .calendar-cell.blocked-date {
@@ -433,14 +418,6 @@ img {
   background: rgba(244, 67, 54, 0.7);
   transform: translateY(-50%) rotate(-15deg);
   pointer-events: none;
-}
-
-.calendar-cell.selected {
-  background-color: #2196F3;
-  color: #ffffff;
-  border-color: #2196F3;
-  font-weight: 600;
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
 }
 
 .calendar-legend {
@@ -494,11 +471,6 @@ img {
   height: 1px;
   background: rgba(245, 245, 245, 0.4);
   transform: translateY(-50%) rotate(-20deg);
-}
-
-.legend-dot.selected {
-  background-color: #2196F3;
-  border-color: #2196F3;
 }
 
 .booking-form {

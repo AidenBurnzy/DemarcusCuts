@@ -312,7 +312,7 @@ async function submitBooking() {
     const bookingData = {
       clientId: API_CONFIG.clientId,
       customerName: formData.get("customerName"),
-      customerEmail: formData.get("customerEmail"),
+      customerEmail: "",
       customerPhone: formData.get("customerPhone") || "",
       date: calendarState.selectedDate,
       startTime: startTime.trim(),
@@ -389,7 +389,6 @@ function showConfirmationModal(bookingData) {
   document.getElementById('confirm-time').textContent = 
     `${formatTime12Hour(bookingData.startTime)} - ${formatTime12Hour(bookingData.endTime)}`;
   document.getElementById('confirm-name').textContent = bookingData.customerName;
-  document.getElementById('confirm-email').textContent = bookingData.customerEmail;
   document.getElementById('confirm-phone').textContent = bookingData.customerPhone || '—';
   
   // Store booking data for calendar export
@@ -462,7 +461,7 @@ function addToCalendar() {
     `DTSTART:${formatICS(startDateTime)}`,
     `DTEND:${formatICS(endDateTime)}`,
     'SUMMARY:Haircut Appointment - DemarcusCuts',
-    `DESCRIPTION:Appointment with DemarcusCuts\nName: ${booking.customerName}\nEmail: ${booking.customerEmail}${booking.customerPhone ? `\nPhone: ${booking.customerPhone}` : ''}${booking.notes ? `\nNotes: ${booking.notes}` : ''}`,
+    `DESCRIPTION:Appointment with DemarcusCuts\nName: ${booking.customerName}${booking.customerPhone ? `\nPhone: ${booking.customerPhone}` : ''}${booking.notes ? `\nNotes: ${booking.notes}` : ''}`,
     'LOCATION:DemarcusCuts',
     'STATUS:CONFIRMED',
     'BEGIN:VALARM',
@@ -541,10 +540,6 @@ function renderCalendar() {
     cell.type = "button";
     cell.textContent = day;
     cell.className = "calendar-cell";
-
-    if (calendarState.selectedDate && calendarState.selectedDate === dateStr) {
-      cell.classList.add("selected");
-    }
 
     // Check if date is blocked
     const isBlocked = calendarState.blockedDates.includes(dateStr);
@@ -931,8 +926,6 @@ function addMonths(date, amount) {
 function addDays(date, amount) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount);
 }
-
-
 
 function isSameDate(a, b) {
   return (
