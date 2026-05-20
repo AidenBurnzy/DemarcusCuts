@@ -378,6 +378,15 @@ img {
   font-weight: 500;
 }
 
+.calendar-cell.past-booked {
+  color: rgba(160, 40, 30, 0.5);
+  border-color: rgba(140, 30, 20, 0.3);
+  background-color: rgba(100, 15, 10, 0.06);
+  cursor: not-allowed;
+  border-width: 1px;
+  font-weight: 500;
+}
+
 .calendar-cell.unavailable-date {
   color: rgba(245, 245, 245, 0.2);
   border-color: rgba(245, 245, 245, 0.07);
@@ -420,6 +429,11 @@ img {
 .legend-dot.booked {
   background-color: rgba(244, 67, 54, 0.2);
   border-color: rgba(244, 67, 54, 0.6);
+}
+
+.legend-dot.past-booked {
+  background-color: rgba(140, 30, 20, 0.2);
+  border-color: rgba(140, 30, 20, 0.45);
 }
 
 .legend-dot.unavailable {

@@ -445,6 +445,10 @@ function renderCalendar() {
       cell.classList.add("booked");
       cell.disabled = true;
       cell.title = "Fully booked";
+    } else if (status === "past-booked") {
+      cell.classList.add("past-booked");
+      cell.disabled = true;
+      cell.title = "Past date";
     } else {
       cell.classList.add("unavailable-date");
       cell.disabled = true;
@@ -457,7 +461,7 @@ function renderCalendar() {
   console.log(`📅 Calendar rendered: ${monthDisplay} ${yearDisplay}`);
 }
 
-// Returns "available", "fully-booked", or "unavailable" for a given date string
+// Returns "available", "fully-booked", "past-booked", or "unavailable" for a given date string
 function getDayStatus(dateStr) {
   if (!calendarState.availability) return "unavailable";
 
@@ -468,16 +472,23 @@ function getDayStatus(dateStr) {
   const override = overrides?.find(o => o.date.split('T')[0] === dateStr);
   if (override && !override.isAvailable) return "unavailable";
 
-  // Outside advance booking window
   const date = new Date(dateStr);
+  const dayOfWeek = getDayOfWeekInTimezone(date);
+  const timeRange = override || schedules.find(s => s.dayOfWeek === dayOfWeek && s.isEnabled);
+
+  // Past dates: deeper red if they had a schedule, otherwise gray
+  const todayStr = formatISODate(new Date());
+  if (dateStr < todayStr) {
+    return timeRange ? "past-booked" : "unavailable";
+  }
+
+  // Outside advance booking window
   const now = new Date();
   const hoursUntilDate = (date - now) / (1000 * 60 * 60);
   if (hoursUntilDate < settings.minAdvanceBooking) return "unavailable";
   if (hoursUntilDate > settings.maxAdvanceBooking) return "unavailable";
 
   // No schedule for this day of week
-  const dayOfWeek = getDayOfWeekInTimezone(date);
-  const timeRange = override || schedules.find(s => s.dayOfWeek === dayOfWeek && s.isEnabled);
   if (!timeRange) return "unavailable";
 
   // Has a schedule — check whether any slots remain
