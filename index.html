@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- 🔧 Backend API URL - Points to Auctus where availability is managed -->
     <meta name="api-base-url" content="https://auctus-app.vercel.app" />
     <title>DemarcusCuts</title>
     <link rel="stylesheet" href="styles.css" />
@@ -52,7 +51,7 @@
               <footer class="calendar-legend">
                 <span class="legend available"><span class="legend-dot available"></span>Available</span>
                 <span class="legend booked"><span class="legend-dot booked"></span>Fully Booked</span>
-                <span class="legend blocked"><span class="legend-dot blocked"></span>Blocked</span>
+                <span class="legend unavailable"><span class="legend-dot unavailable"></span>Unavailable</span>
               </footer>
             </div>
 
@@ -66,7 +65,7 @@
                     <p id="modal-slot-count" class="modal-slot-count"></p>
                     <p class="modal-instruction">Tap a time to continue</p>
                   </div>
-                  <button id="modal-close-btn" class="modal-close" aria-label="Close">×</button>
+                  <button id="modal-close-btn" class="modal-close" aria-label="Close">&times;</button>
                 </div>
                 <div class="time-slots-grid" id="time-slots-grid">
                   <!-- Time slots will be generated here -->
@@ -119,12 +118,12 @@
               <div class="form-actions">
                 <button type="submit" class="cta">Request Booking</button>
                 <p class="form-hint">
-                  Your appointment request will be confirmed via email.
+                  Your appointment request will be confirmed via phone.
                 </p>
               </div>
             </form>
           </div>
-          
+
           <div class="cancellation-notice">
             <p class="cancellation-text">
               <strong>Need to Cancel or Manage an appointment?</strong><br>
@@ -234,22 +233,8 @@
               <p><strong>Phone:</strong> <a href="tel:+64220923501" class="contact-link">022 092 3501</a></p>
             </div>
             <div class="social-links">
-              <a
-                class="social-link"
-                href="https://www.instagram.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Instagram
-              </a>
-              <a
-                class="social-link"
-                href="https://www.tiktok.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                TikTok
-              </a>
+              <a class="social-link" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">Instagram</a>
+              <a class="social-link" href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer">TikTok</a>
             </div>
           </div>
           <form class="contact-form" id="contact-form">
@@ -288,14 +273,13 @@
       <div class="modal-overlay"></div>
       <div class="modal-content confirmation-modal">
         <div class="confirmation-header">
-          <div class="success-icon">✓</div>
+          <div class="success-icon">&#10003;</div>
           <h2>Booking Confirmed!</h2>
-          <button class="modal-close" onclick="closeConfirmationModal()" aria-label="Close">×</button>
+          <button class="modal-close" onclick="closeConfirmationModal()" aria-label="Close">&times;</button>
         </div>
         <div class="confirmation-body">
           <p class="confirmation-message">Your appointment has been successfully booked.</p>
-          <p class="save-reminder"><strong>📸 Remember to screenshot or save this information!</strong></p>
-          
+          <p class="save-reminder"><strong>&#128248; Remember to screenshot or save this information!</strong></p>
           <div class="booking-details">
             <div class="detail-row">
               <span class="detail-label">Date:</span>
@@ -311,12 +295,12 @@
             </div>
             <div class="detail-row">
               <span class="detail-label">Phone:</span>
-              <span class="detail-value" id="confirm-phone">—</span>
+              <span class="detail-value" id="confirm-phone">&mdash;</span>
             </div>
           </div>
         </div>
         <div class="confirmation-footer">
-          <button class="cta add-calendar-btn" onclick="addToCalendar()" style="background: rgba(76, 175, 80, 0.9); margin-bottom: 0.75rem;">📅 Add to Calendar</button>
+          <button class="cta add-calendar-btn" onclick="addToCalendar()" style="background: rgba(76, 175, 80, 0.9); margin-bottom: 0.75rem;">&#128197; Add to Calendar</button>
           <button id="done-btn" class="cta" onclick="closeConfirmationModal()" disabled>Done (<span id="countdown">3</span>)</button>
         </div>
       </div>
